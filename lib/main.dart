@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:world_wisdom/Screen/Course.dart';
+import 'package:world_wisdom/screen/course/Course.dart';
+import 'package:world_wisdom/screen/course/CourseKey.dart';
+import 'package:world_wisdom/screen/course/CourseScreenState.dart';
+
+
 
 void main() {
   runApp(MyApp());
@@ -24,7 +28,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => CourseScreen(),
+        '/': (context) => CourseScreen(key: CourseKey.globalKey),
       },
     );
   }

@@ -1,17 +1,9 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/screen/tab/HomeTab.dart';
 
-import 'Tab/HomeTab.dart';
+import 'Course.dart';
 
-class CourseScreen extends StatefulWidget {
-  @override
-  _CourseScreenState createState() => _CourseScreenState();
-}
-
-enum MenuItem { setting, feedback, support }
-
-class _CourseScreenState extends State<CourseScreen> {
+class CourseScreenState extends State<CourseScreen> {
 
   int selectedIndex = 0;
 
@@ -43,8 +35,8 @@ class _CourseScreenState extends State<CourseScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          tabNames[selectedIndex]
-      ),
+            tabNames[selectedIndex]
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.account_circle),
@@ -73,11 +65,11 @@ class _CourseScreenState extends State<CourseScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items:
         tabIconMap.entries.map((tab) =>
-              BottomNavigationBarItem(
-              icon: Icon(tab.value),
-              label: tab.key
-              )
-          ).toList(),
+            BottomNavigationBarItem(
+                icon: Icon(tab.value),
+                label: tab.key
+            )
+        ).toList(),
         showUnselectedLabels: true,
         onTap: selectedTab,
         currentIndex: selectedIndex,
