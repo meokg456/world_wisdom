@@ -5,15 +5,27 @@ import 'Course.dart';
 
 class CourseScreenState extends State<CourseScreen> {
 
+  String title;
+
   int selectedIndex = 0;
+
+  bool isOnMainTab = true;
 
   var tabNames = ['Home', 'Downloads', 'Browse', 'Search'];
 
+  var menuNames = ["Settings", "Send feedback", "Support"];
+
   var tabIconMap = {
     'Home': Icons.home_outlined,
-    'Downloads': Icons.download_rounded,
+    'Downloads': Icons.arrow_circle_down_outlined,
     'Browse': Icons.apps,
     'Search': Icons.search
+  };
+
+  var configScreenMap = {
+    MenuItem.setting: Container(),
+    MenuItem.feedback: Container(),
+    MenuItem.support: Container()
   };
 
   var tabMap = {
@@ -23,10 +35,22 @@ class CourseScreenState extends State<CourseScreen> {
     'Search': Container()
   };
 
+  Widget showingTab;
+
+
+  @override
+  void initState() {
+    super.initState();
+    showingTab = tabMap[tabNames[selectedIndex]];
+    title = tabNames[0];
+  }
+
   void selectedTab(int selectedItem)
   {
     setState(() {
       selectedIndex = selectedItem;
+      title = tabNames[selectedIndex];
+      showingTab = tabMap[title];
     });
   }
 
@@ -34,15 +58,31 @@ class CourseScreenState extends State<CourseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: isOnMainTab ? null : IconButton(
+            icon: Icon(Icons.arrow_back_outlined),
+            onPressed: () {
+              setState(() {
+                title = tabNames[selectedIndex];
+                showingTab = tabMap[tabNames[selectedIndex]];
+                isOnMainTab = true;
+              });
+            }),
         title: Text(
-            tabNames[selectedIndex]
+            title,
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.account_circle),
+            icon: Icon(Icons.account_circle, color: Colors.blue,),
             onPressed: () {},
           ),
           PopupMenuButton<MenuItem>(
+            onSelected: (item) {
+              setState(() {
+                showingTab = configScreenMap[item];
+                title = menuNames[item.index];
+                isOnMainTab = false;
+              });
+            },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuItem>>[
               const PopupMenuItem<MenuItem>(
                 value: MenuItem.setting,
@@ -53,7 +93,7 @@ class CourseScreenState extends State<CourseScreen> {
                 child: Text('Send feedback'),
               ),
               const PopupMenuItem<MenuItem>(
-                value: MenuItem.setting,
+                value: MenuItem.support,
                 child: Text('Contrast support'),
               ),
 
@@ -61,7 +101,7 @@ class CourseScreenState extends State<CourseScreen> {
           )
         ],
       ),
-      body: tabMap[tabNames[selectedIndex]],
+      body: showingTab,
       bottomNavigationBar: BottomNavigationBar(
         items:
         tabIconMap.entries.map((tab) =>
