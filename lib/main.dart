@@ -16,16 +16,20 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        textTheme: Typography.whiteCupertino,
+        textTheme: Typography.englishLike2018,
         primaryColor: Color(0xFF181C20),
         scaffoldBackgroundColor: Color(0xFF0D0F12),
         cardColor: Color(0xFF181C20),
         dialogBackgroundColor: Color(0xFF2d3436),
         canvasColor: Color(0xFF181C20),
-        //0081B9
+        //0081B9 //0084BD
         brightness: Brightness.dark,
         visualDensity: VisualDensity.adaptivePlatformDensity,
-
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF0084BD))
+          )
+        ),
       ),
       initialRoute: '/',
       routes: {

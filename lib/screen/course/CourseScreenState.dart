@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/screen/course/tab/DownloadTab.dart';
+import 'package:world_wisdom/screen/course/tab/HomeTab.dart';
 import 'package:world_wisdom/screen/tab/HomeTab.dart';
 
 import 'Course.dart';
@@ -30,7 +32,7 @@ class CourseScreenState extends State<CourseScreen> {
 
   var tabMap = {
     'Home': HomeTab(),
-    'Downloads': Container(),
+    'Downloads': DownloadTab(),
     'Browse': Container(),
     'Search': Container()
   };
