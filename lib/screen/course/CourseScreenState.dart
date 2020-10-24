@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:world_wisdom/screen/course/tab/BrowseTab.dart';
 import 'package:world_wisdom/screen/course/tab/DownloadTab.dart';
 import 'package:world_wisdom/screen/course/tab/HomeTab.dart';
-import 'package:world_wisdom/screen/tab/HomeTab.dart';
 
 import 'Course.dart';
 

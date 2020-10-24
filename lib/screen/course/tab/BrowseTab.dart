@@ -446,7 +446,92 @@ class _BrowseTabState extends State<BrowseTab> {
               SizedBox(width: 5,),
             ],
           ),
-        )
+        ),
+        Container(
+          margin: EdgeInsets.only(top: 20, right: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Paths", style: TextStyle(fontSize: 18),),
+              InkWell(
+                child: Text("See all >"),
+              )
+            ],
+          ),),
+        Container(
+          margin: EdgeInsets.symmetric(vertical: 20),
+          height: 200,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Card(
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Image.asset("resources/images/security.png"),
+                          Text("Red Team Tools"),
+                          Text("36 courses"),
+                        ],
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Card(
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.asset("resources/images/security.png"),
+                        Text("Red Team Tools"),
+                        Text("36 courses"),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Card(
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.asset("resources/images/security.png"),
+                        Text("Red Team Tools"),
+                        Text("36 courses"),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Card(
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.asset("resources/images/security.png"),
+                        Text("Red Team Tools"),
+                        Text("36 courses"),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            ],
+          ),
+        ),
       ],
     );
   }

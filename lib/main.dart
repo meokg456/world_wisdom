@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:world_wisdom/screen/course/Course.dart';
 import 'package:world_wisdom/screen/course/CourseKey.dart';
 import 'package:world_wisdom/screen/course/CourseScreenState.dart';
+import 'package:world_wisdom/screen/setting/SettingScreen.dart';
 
 
 
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => CourseScreen(key: CourseKey.globalKey),
+        '/settings' : (context) => SettingScreen(),
       },
     );
   }
