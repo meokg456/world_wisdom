@@ -44,9 +44,9 @@ class _DownloadTabState extends State<DownloadTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Image.asset("resourses/images/DownloadByButton.jpg",
+              Image.asset("resources/images/DownloadByButton.jpg",
               height: 150,),
-              Image.asset("resourses/images/DownloadByMenu.jpg",
+              Image.asset("resources/images/DownloadByMenu.jpg",
                 height: 150,)
             ],
           )
