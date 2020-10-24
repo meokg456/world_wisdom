@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 
-import '../Tab/HomeTab.dart';
 import 'CourseScreenState.dart';
 
 class CourseScreen extends StatefulWidget {

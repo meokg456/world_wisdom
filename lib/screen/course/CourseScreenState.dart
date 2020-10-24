@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:world_wisdom/screen/course/tab/BrowseTab.dart';
 import 'package:world_wisdom/screen/course/tab/DownloadTab.dart';
 import 'package:world_wisdom/screen/course/tab/HomeTab.dart';
+import 'package:world_wisdom/screen/course/tab/SearchTab.dart';
 
 import 'Course.dart';
 
@@ -34,7 +35,7 @@ class CourseScreenState extends State<CourseScreen> {
     'Home': HomeTab(),
     'Downloads': DownloadTab(),
     'Browse': BrowseTab(),
-    'Search': Container()
+    'Search': SearchTab()
   };
 
   Widget showingTab;
@@ -59,7 +60,8 @@ class CourseScreenState extends State<CourseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: selectedIndex != 3 ?
+      AppBar(
         leading: isOnMainTab ? null : IconButton(
             icon: Icon(Icons.arrow_back_outlined),
             onPressed: () {
@@ -102,6 +104,17 @@ class CourseScreenState extends State<CourseScreen> {
             ],
           )
         ],
+      ) :
+      AppBar(
+        title: TextField(
+          decoration: InputDecoration(
+            hintText: "Search...",
+            hintStyle: TextStyle(color: Colors.white)
+          ),
+          style: TextStyle(
+            fontSize: 24
+          ),
+        ),
       ),
       body: showingTab,
       bottomNavigationBar: BottomNavigationBar(
