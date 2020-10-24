@@ -471,11 +471,11 @@ class _BrowseTabState extends State<BrowseTab> {
                     padding: EdgeInsets.all(10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Image.asset("resources/images/security.png"),
-                          Text("Red Team Tools"),
-                          Text("36 courses"),
-                        ],
+                      children: [
+                        Image.asset("resources/images/security.png"),
+                        Text("Red Team Tools"),
+                        Text("36 courses"),
+                      ],
                     ),
                   ),
                 ),
@@ -529,6 +529,88 @@ class _BrowseTabState extends State<BrowseTab> {
                 ),
               ),
 
+            ],
+          ),
+        ),
+        Container(
+            margin: EdgeInsets.only(top: 20),
+            child: Text("Top authors", style: TextStyle(fontSize: 18),)),
+        Container(
+          margin: EdgeInsets.only(top: 20),
+          height: 200,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: AssetImage(
+                          "resources/images/conferences.jpg"),
+                      radius: 50,
+                    ),
+                    SizedBox(height: 10,),
+                    Text("Deborah Kurata",style: TextStyle(fontSize: 16),),
+                  ],
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: AssetImage(
+                          "resources/images/conferences.jpg"),
+                      radius: 50,
+                    ),
+                    SizedBox(height: 10,),
+                    Text("Deborah Kurata",style: TextStyle(fontSize: 16),),
+                  ],
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: AssetImage(
+                          "resources/images/conferences.jpg"),
+                      radius: 50,
+                    ),
+                    SizedBox(height: 10,),
+                    Text("Deborah Kurata",style: TextStyle(fontSize: 16),),
+                  ],
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: AssetImage(
+                          "resources/images/conferences.jpg"),
+                      radius: 50,
+                    ),
+                    SizedBox(height: 10,),
+                    Text("Deborah Kurata",style: TextStyle(fontSize: 16),),
+                  ],
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: AssetImage(
+                          "resources/images/conferences.jpg"),
+                      radius: 50,
+                    ),
+                    SizedBox(height: 10,),
+                    Text("Deborah Kurata",style: TextStyle(fontSize: 16),),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
