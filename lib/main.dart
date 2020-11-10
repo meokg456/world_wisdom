@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:world_wisdom/screen/authentication/ForgetPasswordScreen.dart';
 import 'package:world_wisdom/screen/authentication/LoginScreen.dart';
 import 'package:world_wisdom/screen/MainScreen.dart';
 import 'file:///C:/Users/pc/AndroidStudioProjects/world_wisdom/lib/screen/CourseKey.dart';
@@ -52,7 +53,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => MainScreen(key: CourseKey.globalKey),
-        '/login': (context) => LoginScreen()
+        '/authentication/login': (context) => LoginScreen(),
+        '/authentication/forgot': (context) => ForgotPasswordScreen(),
       },
     );
   }

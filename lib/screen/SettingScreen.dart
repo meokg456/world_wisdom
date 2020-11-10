@@ -42,7 +42,7 @@ class _SettingScreenState extends State<SettingScreen> {
             margin: EdgeInsets.symmetric(horizontal: 20),
             child: OutlinedButton(
               onPressed: () {
-                Navigator.of(context).pushNamed("/login");
+                Navigator.of(context).pushNamed("/authentication/login");
               },
               child: Text("SIGN IN"),
             ),

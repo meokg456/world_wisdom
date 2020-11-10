@@ -40,9 +40,15 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 20,
             ),
             InkWell(
+              onTap: () {
+                Navigator.of(context).pushNamed("/authentication/forgot");
+              },
               child: Text(
                 "FORGOT PASSWORD?",
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).accentColor,
+                    fontWeight: FontWeight.w600),
               ),
             ),
             SizedBox(
@@ -51,9 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Container(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed("/login");
-                },
+                onPressed: () {},
                 child: Text(
                   "USE SINGLE SIGN-ON(SSO)",
                   style: TextStyle(fontSize: 16),
@@ -66,7 +70,10 @@ class _LoginScreenState extends State<LoginScreen> {
             InkWell(
               child: Text(
                 "SIGN UP FREE?",
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).accentColor,
+                    fontWeight: FontWeight.w600),
               ),
             ),
           ],
