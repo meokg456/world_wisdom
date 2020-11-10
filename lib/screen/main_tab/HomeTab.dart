@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:world_wisdom/screen/course/CourseKey.dart';
+import 'file:///C:/Users/pc/AndroidStudioProjects/world_wisdom/lib/screen/CourseKey.dart';
 
 class HomeTab extends StatefulWidget {
   @override
