@@ -15,26 +15,38 @@ class _SettingScreenState extends State<SettingScreen> {
           ListTile(
             title: Text(
               "Captions",
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .headline6,
             ),
             dense: true,
           ),
           ListTile(
             title: Text(
               "Notifications",
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .headline6,
             ),
             dense: true,
           ),
           ListTile(
             title: Text(
               "App version",
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .headline6,
             ),
             dense: true,
             subtitle: Text(
               "2.38.0",
-              style: Theme.of(context).textTheme.subtitle2,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .subtitle2,
             ),
           ),
           Divider(),
