@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:world_wisdom/screen/SettingScreen.dart';
-import 'package:world_wisdom/screen/main_tab/BrowseTab.dart';
-import 'package:world_wisdom/screen/main_tab/DownloadTab.dart';
-import 'package:world_wisdom/screen/main_tab/HomeTab.dart';
-import 'package:world_wisdom/screen/main_tab/SearchTab.dart';
+import 'package:world_wisdom/screen/setting_screen.dart';
+import 'package:world_wisdom/screen/main_tab/browse_tab.dart';
+import 'package:world_wisdom/screen/main_tab/download_tab.dart';
+import 'package:world_wisdom/screen/main_tab/home_tab.dart';
+import 'package:world_wisdom/screen/main_tab/search_tab.dart';
 
-import 'MainScreen.dart';
+import 'main_screen.dart';
 
 class MainScreenState extends State<MainScreen> {
   String title;

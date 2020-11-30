@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'file:///C:/Users/pc/AndroidStudioProjects/world_wisdom/lib/screen/CourseKey.dart';
+import 'package:world_wisdom/screen/main_screen/main_screen_key.dart';
 
 class HomeTab extends StatefulWidget {
   @override
@@ -29,7 +29,7 @@ class _HomeTabState extends State<HomeTab> {
                 color: Colors.white,
               ),
               onPressed: () {
-                CourseKey.globalKey.currentState.selectedTab(2);
+                MainKey.mainKey.currentState.selectedTab(2);
           }),
           Container(
             margin: EdgeInsets.only(top: 10, bottom: 30),
@@ -42,7 +42,7 @@ class _HomeTabState extends State<HomeTab> {
                 color: Colors.white,
               ),
               onPressed: () {
-                CourseKey.globalKey.currentState.selectedTab(3);
+                MainKey.mainKey.currentState.selectedTab(3);
               }),
           Container(
             margin: EdgeInsets.only(top: 5, bottom: 20),

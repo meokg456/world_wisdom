@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../CourseKey.dart';
+import '../main_screen/main_screen_key.dart';
 
 class DownloadTab extends StatefulWidget {
   @override
@@ -40,7 +40,7 @@ class _DownloadTabState extends State<DownloadTab> {
             width: double.infinity,
             child: ElevatedButton(
                 onPressed: () {
-                  CourseKey.globalKey.currentState.selectedTab(2);
+                  MainKey.mainKey.currentState.selectedTab(2);
                 },
                 child: Text(
                   "FIND A COURSE TO DOWNLOAD",
