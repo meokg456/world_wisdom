@@ -32,6 +32,9 @@ class MyApp extends StatelessWidget {
             dialogBackgroundColor: Color(0xFF2d3436),
             canvasColor: Color(0xFF181C20),
             focusColor: Color(0xFF0084BD),
+            snackBarTheme: SnackBarThemeData(
+                backgroundColor: Color(0xFF181C20),
+                contentTextStyle: TextStyle(color: Colors.white, fontSize: 18)),
             //0081B9 //0084BD
             brightness: Brightness.dark,
             visualDensity: VisualDensity.adaptivePlatformDensity,

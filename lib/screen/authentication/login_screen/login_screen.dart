@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:world_wisdom/screen/authentication/login_screen/login_data.dart';
 import 'package:world_wisdom/screen/authentication/validator/validator.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:world_wisdom/screen/model/authentication_model.dart';
@@ -28,99 +29,106 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: Text("Sign In"),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 30),
-        child: Form(
-          key: _loginFormKey,
-          child: Column(
-            children: [
-              TextFormField(
-                  controller: _usernameController,
-                  textInputAction: TextInputAction.next,
-                  validator: Validator.validateEmail,
-                  decoration: InputDecoration(
-                    labelText: "Username (or Email)",
-                  )),
-              TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  onEditingComplete: logIn,
-                  validator: Validator.validatePassword,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                      labelText: "Password",
-                      suffixIcon: Icon(Icons.visibility_off))),
-              _isWrong
-                  ? SizedBox(
-                      height: 20,
-                    )
-                  : SizedBox(
-                      height: 0,
-                    ),
-              _isWrong
-                  ? Text(
-                      "Invalid password or username",
-                      style: TextStyle(color: Colors.red),
-                    )
-                  : Text(""),
-              SizedBox(
-                height: 20,
-              ),
-              _isLoading
-                  ? CircularProgressIndicator()
-                  : Container(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                          onPressed: logIn,
-                          child: Text(
-                            "SIGN IN",
-                            style: TextStyle(fontSize: 16),
-                          )),
-                    ),
-              SizedBox(
-                height: 20,
-              ),
-              InkWell(
-                onTap: () {
-                  Navigator.of(context).pushNamed("/authentication/forgot");
-                },
-                child: Text(
-                  "FORGOT PASSWORD?",
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).accentColor,
-                      fontWeight: FontWeight.w600),
+      body: Builder(
+        builder: (context) => SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 30, vertical: 30),
+          child: Form(
+            key: _loginFormKey,
+            child: Column(
+              children: [
+                TextFormField(
+                    controller: _usernameController,
+                    textInputAction: TextInputAction.next,
+                    validator: Validator.validateEmail,
+                    decoration: InputDecoration(
+                      labelText: "Username (or Email)",
+                    )),
+                TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    onEditingComplete: logIn,
+                    validator: Validator.validatePassword,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                        labelText: "Password",
+                        suffixIcon: Icon(Icons.visibility_off))),
+                _isWrong
+                    ? SizedBox(
+                        height: 20,
+                      )
+                    : SizedBox(
+                        height: 0,
+                      ),
+                _isWrong
+                    ? Text(
+                        "Invalid password or username",
+                        style: TextStyle(color: Colors.red),
+                      )
+                    : Text(""),
+                SizedBox(
+                  height: 20,
                 ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              Container(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {},
+                _isLoading
+                    ? CircularProgressIndicator()
+                    : Container(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                            onPressed: logIn,
+                            child: Text(
+                              "SIGN IN",
+                              style: TextStyle(fontSize: 16),
+                            )),
+                      ),
+                SizedBox(
+                  height: 20,
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).pushNamed("/authentication/forgot");
+                  },
                   child: Text(
-                    "USE SINGLE SIGN-ON(SSO)",
-                    style: TextStyle(fontSize: 16),
+                    "FORGOT PASSWORD?",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).accentColor,
+                        fontWeight: FontWeight.w600),
                   ),
                 ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              InkWell(
-                child: Text(
-                  "SIGN UP FREE?",
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).accentColor,
-                      fontWeight: FontWeight.w600),
+                SizedBox(
+                  height: 10,
                 ),
-                onTap: () {
-                  Navigator.pushNamed(context, '/authentication/register');
-                },
-              ),
-            ],
+                Container(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    child: Text(
+                      "USE SINGLE SIGN-ON(SSO)",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                InkWell(
+                  child: Text(
+                    "SIGN UP FREE?",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).accentColor,
+                        fontWeight: FontWeight.w600),
+                  ),
+                  onTap: () async {
+                    LoginData data = await Navigator.pushNamed(
+                        context, '/authentication/register') as LoginData;
+                    Scaffold.of(context).showSnackBar(
+                        SnackBar(content: Text("${data.message}")));
+                    _usernameController.text = data.email;
+                    // print(data);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -139,8 +147,8 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     http.Response response = await http.post(Constants.apiUrl + "user/login",
         body: jsonEncode({
-          "email": _usernameController.value.text,
-          "password": _passwordController.value.text
+          "email": _usernameController.text,
+          "password": _passwordController.text
         }),
         headers: {"Content-Type": "application/json"});
     setState(() {

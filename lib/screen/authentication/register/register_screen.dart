@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/screen/authentication/login_screen/login_data.dart';
 import 'package:world_wisdom/screen/authentication/validator/validator.dart';
+import 'package:http/http.dart' as http;
+import 'package:world_wisdom/screen/constants/constants.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -17,10 +22,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isFailed = false;
   bool _isLoading = false;
 
-  void register() {
+  void register() async {
     if (!_registerFormKey.currentState.validate()) {
       return;
     }
+    setState(() {
+      _isLoading = true;
+    });
+
+    var response = await http.post(Constants.apiUrl + "user/register",
+        body: jsonEncode({
+          "username": _usernameController.text,
+          "email": _emailController.text,
+          "phone": _phoneController.text,
+          "password": _passwordController.text
+        }),
+        headers: {"Content-Type": "application/json"});
+    Map body = jsonDecode(response.body);
+    print(body['message']);
+    if (response.statusCode == 200) {
+      LoginData data =
+          LoginData("Registered successfully", _emailController.text);
+      Navigator.pop(context, data);
+    } else {
+      setState(() {
+        _isFailed = true;
+      });
+    }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
