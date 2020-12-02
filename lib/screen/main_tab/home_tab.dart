@@ -15,12 +15,9 @@ class _HomeTabState extends State<HomeTab> {
         children: [
           Container(
             margin: EdgeInsets.only(top: 80, bottom: 20),
-            child: Text("Let's get you started",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600
-            ),
-
+            child: Text(
+              "Let's get you started",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
           ),
           IconButton(
@@ -30,10 +27,11 @@ class _HomeTabState extends State<HomeTab> {
               ),
               onPressed: () {
                 MainKey.mainKey.currentState.selectedTab(2);
-          }),
+              }),
           Container(
             margin: EdgeInsets.only(top: 10, bottom: 30),
-            child: Text("Browse new & popular courses",
+            child: Text(
+              "Browse new & popular courses",
             ),
           ),
           IconButton(
@@ -46,7 +44,8 @@ class _HomeTabState extends State<HomeTab> {
               }),
           Container(
             margin: EdgeInsets.only(top: 5, bottom: 20),
-            child: Text("Search the library",
+            child: Text(
+              "Search the library",
             ),
           ),
         ],

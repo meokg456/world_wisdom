@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'file:///D:/AndroidStudioProjects/world_wisdom/lib/screen/authentication/validator/validator.dart';
+import 'package:world_wisdom/screen/authentication/validator/validator.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:world_wisdom/screen/model/authentication_model.dart';
 import 'package:world_wisdom/screen/model/user_model.dart';
@@ -19,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = new TextEditingController();
   final _passwordController = new TextEditingController();
   final _loginFormKey = new GlobalKey<FormState>();
-  FocusNode _passwordFocusNode;
+
   bool _isWrong = false;
   bool _isLoading = false;
 
@@ -39,43 +38,45 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _usernameController,
                   textInputAction: TextInputAction.next,
                   validator: Validator.validateEmail,
-                  onFieldSubmitted: (String value) {
-                    _passwordFocusNode.requestFocus();
-                  },
                   decoration: InputDecoration(
                     labelText: "Username (or Email)",
                   )),
               TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  focusNode: _passwordFocusNode,
                   onEditingComplete: logIn,
                   validator: Validator.validatePassword,
                   textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                       labelText: "Password",
                       suffixIcon: Icon(Icons.visibility_off))),
-              _isWrong ? SizedBox(
-                height: 20,
-              ) : SizedBox(height: 0,),
-              _isWrong ? Text("Invalid password or username",
-                style: TextStyle(color: Colors.red),) : Text(""),
+              _isWrong
+                  ? SizedBox(
+                      height: 20,
+                    )
+                  : SizedBox(
+                      height: 0,
+                    ),
+              _isWrong
+                  ? Text(
+                      "Invalid password or username",
+                      style: TextStyle(color: Colors.red),
+                    )
+                  : Text(""),
               SizedBox(
                 height: 20,
               ),
-              _isLoading ?
-              CircularProgressIndicator()
-
+              _isLoading
+                  ? CircularProgressIndicator()
                   : Container(
-                width: double.infinity,
-                child:
-                ElevatedButton(
-                    onPressed: logIn,
-                    child: Text(
-                      "SIGN IN",
-                      style: TextStyle(fontSize: 16),
-                    )),
-              ),
+                      width: double.infinity,
+                      child: ElevatedButton(
+                          onPressed: logIn,
+                          child: Text(
+                            "SIGN IN",
+                            style: TextStyle(fontSize: 16),
+                          )),
+                    ),
               SizedBox(
                 height: 20,
               ),
@@ -87,9 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   "FORGOT PASSWORD?",
                   style: TextStyle(
                       fontSize: 16,
-                      color: Theme
-                          .of(context)
-                          .accentColor,
+                      color: Theme.of(context).accentColor,
                       fontWeight: FontWeight.w600),
                 ),
               ),
@@ -114,9 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   "SIGN UP FREE?",
                   style: TextStyle(
                       fontSize: 16,
-                      color: Theme
-                          .of(context)
-                          .accentColor,
+                      color: Theme.of(context).accentColor,
                       fontWeight: FontWeight.w600),
                 ),
                 onTap: () {

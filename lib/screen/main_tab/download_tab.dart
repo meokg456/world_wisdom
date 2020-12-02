@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../main_screen/main_screen_key.dart';
+import 'package:world_wisdom/screen/main_screen/main_screen_key.dart';
 
 class DownloadTab extends StatefulWidget {
   @override
