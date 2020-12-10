@@ -29,8 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() {
       _isLoading = true;
     });
-
-    var response = await http.post(Constants.apiUrl + "user/register",
+    var response = await http.post("${Constants.apiUrl}/user/register",
         body: jsonEncode({
           "username": _usernameController.text,
           "email": _emailController.text,

@@ -1,146 +1,105 @@
 import 'package:flutter/material.dart';
-import 'package:world_wisdom/screen/setting_screen.dart';
-import 'package:world_wisdom/screen/main_tab/browse_tab.dart';
-import 'package:world_wisdom/screen/main_tab/download_tab.dart';
-import 'package:world_wisdom/screen/main_tab/home_tab.dart';
-import 'package:world_wisdom/screen/main_tab/search_tab.dart';
+import 'package:world_wisdom/screen/account-management/profile/profile_screen.dart';
+import 'package:world_wisdom/screen/account-management/setting/setting_screen.dart';
+import 'package:world_wisdom/screen/key/key.dart';
+import 'package:world_wisdom/screen/main_screen/browse_tab/browse_tab.dart';
+import 'package:world_wisdom/screen/main_screen/download_tab/download_tab.dart';
+import 'package:world_wisdom/screen/main_screen/home_tab/home_tab.dart';
+import 'package:world_wisdom/screen/main_screen/search_tab/search_tab.dart';
 
 import 'main_screen.dart';
 
+enum MenuItem { setting, feedback, support, profile }
+
+class TabData {
+  String tabName = "";
+  IconData iconData;
+  Widget tab;
+
+  TabData(this.tabName, this.iconData, this.tab);
+}
+
 class MainScreenState extends State<MainScreen> {
-  String title;
-
-  int selectedIndex = 0;
-
-  bool isOnMainTab = true;
-
-  var tabNames = ['Home', 'Downloads', 'Browse', 'Search'];
-
-  var menuNames = ["Settings", "Send feedback", "Support"];
-
-  var tabIconMap = {
-    'Home': Icons.home_outlined,
-    'Downloads': Icons.arrow_circle_down_outlined,
-    'Browse': Icons.apps,
-    'Search': Icons.search
-  };
+  int _selectedIndex = 0;
+  List<TabData> tabs = [
+    TabData("Home", Icons.home_outlined, HomeTab()),
+    TabData("Download", Icons.arrow_circle_down_outlined, DownloadTab()),
+    TabData("Browse", Icons.apps, BrowseTab()),
+    TabData("Search", Icons.search, SearchTab())
+  ];
 
   var configScreenMap = {
     MenuItem.setting: SettingScreen(),
     MenuItem.feedback: Container(),
-    MenuItem.support: Container()
+    MenuItem.support: Container(),
+    MenuItem.profile: ProfileScreen()
   };
-
-  var tabMap = {
-    'Home': HomeTab(),
-    'Downloads': DownloadTab(),
-    'Browse': BrowseTab(),
-    'Search': SearchTab()
-  };
-
-  Widget showingTab;
-
-  @override
-  void initState() {
-    super.initState();
-    showingTab = tabMap[tabNames[selectedIndex]];
-    title = tabNames[0];
-  }
 
   void selectedTab(int selectedItem) {
     setState(() {
-      selectedIndex = selectedItem;
+      _selectedIndex = selectedItem;
       FocusScope.of(context).unfocus();
-      title = tabNames[selectedIndex];
-      showingTab = tabMap[title];
-      isOnMainTab = true;
+      Keys.mainNavigatorKey.currentState
+          .popUntil((route) => route.settings.name == "/");
     });
   }
 
-  Future<bool> _onWillPop() async {
-    if (isOnMainTab == true) {
-      return true;
-    } else {
-      selectedTab(selectedIndex);
+  Future<bool> onPop() async {
+    if (Keys.mainNavigatorKey.currentState.canPop()) {
+      Keys.mainNavigatorKey.currentState.pop();
       return false;
     }
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: _onWillPop,
+      onWillPop: onPop,
       child: Scaffold(
-        appBar: selectedIndex != 3
-            ? AppBar(
-                leading: isOnMainTab
-                    ? null
-                    : IconButton(
-                        icon: Icon(Icons.arrow_back_outlined),
-                        onPressed: () {
-                          setState(() {
-                            selectedTab(selectedIndex);
-                          });
-                        }),
-                title: Text(
-                  title,
-                ),
-                actions: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.account_circle,
-                      color: Colors.blue,
-                    ),
-                    onPressed: () {},
-                  ),
-                  PopupMenuButton<MenuItem>(
-                    onSelected: (item) {
-                      setState(() {
-                        showingTab = configScreenMap[item];
-                        title = menuNames[item.index];
-                        isOnMainTab = false;
-                      });
-                    },
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<MenuItem>>[
-                      const PopupMenuItem<MenuItem>(
-                        value: MenuItem.setting,
-                        child: Text('Settings'),
-                      ),
-                      const PopupMenuItem<MenuItem>(
-                        value: MenuItem.feedback,
-                        child: Text('Send feedback'),
-                      ),
-                      const PopupMenuItem<MenuItem>(
-                        value: MenuItem.support,
-                        child: Text('Contrast support'),
-                      ),
-                    ],
-                  )
-                ],
-              )
-            : AppBar(
-                title: TextField(
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: "Search...",
-                    hintStyle: TextStyle(color: Colors.white, fontSize: 18),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF4B4F53)),
-                    ),
-                  ),
-                  style: TextStyle(fontSize: 24),
-                ),
-              ),
-        body: showingTab,
+        body: Navigator(
+          key: Keys.mainNavigatorKey,
+          initialRoute: '/',
+          onGenerateRoute: (RouteSettings settings) {
+            WidgetBuilder builder;
+            // Manage your route names here
+            switch (settings.name) {
+              case '/':
+                builder = (BuildContext context) => tabs[_selectedIndex].tab;
+                break;
+              case '/setting':
+                builder = (BuildContext context) => SettingScreen();
+                break;
+              case '/feedback':
+                builder = (BuildContext context) => SettingScreen();
+                break;
+              case '/support':
+                builder = (BuildContext context) => SettingScreen();
+                break;
+              case '/profile':
+                builder = (BuildContext context) => ProfileScreen();
+                break;
+              default:
+                throw Exception('Invalid route: ${settings.name}');
+            }
+            // You can also return a PageRouteBuilder and
+            // define custom transitions between pages
+            return MaterialPageRoute(
+              builder: builder,
+              settings: settings,
+            );
+          },
+        ),
         bottomNavigationBar: BottomNavigationBar(
-          items: tabIconMap.entries
-              .map((tab) => BottomNavigationBarItem(
-                  icon: Icon(tab.value), label: tab.key))
-              .toList(),
+          key: Keys.bottomNavigationBarKey,
+          items: List<BottomNavigationBarItem>.generate(
+              4,
+              (index) => BottomNavigationBarItem(
+                  icon: Icon(tabs[index].iconData),
+                  label: tabs[index].tabName)),
           showUnselectedLabels: true,
           onTap: selectedTab,
-          currentIndex: selectedIndex,
+          currentIndex: _selectedIndex,
           unselectedItemColor: Colors.white,
           selectedItemColor: Color(0xFF0081B9),
           type: BottomNavigationBarType.fixed,

@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:world_wisdom/model/authentication_model.dart';
+import 'package:world_wisdom/model/user_model.dart';
 import 'package:world_wisdom/screen/authentication/login_screen/login_data.dart';
 import 'package:world_wisdom/screen/authentication/validator/validator.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
-import 'package:world_wisdom/screen/model/authentication_model.dart';
-import 'package:world_wisdom/screen/model/user_model.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = new TextEditingController();
   final _loginFormKey = new GlobalKey<FormState>();
 
-  bool _isWrong = false;
+  bool _isFailed = false;
   bool _isLoading = false;
 
   @override
@@ -52,14 +52,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(
                         labelText: "Password",
                         suffixIcon: Icon(Icons.visibility_off))),
-                _isWrong
+                _isFailed
                     ? SizedBox(
                         height: 20,
                       )
                     : SizedBox(
                         height: 0,
                       ),
-                _isWrong
+                _isFailed
                     ? Text(
                         "Invalid password or username",
                         style: TextStyle(color: Colors.red),
@@ -83,8 +83,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 20,
                 ),
                 InkWell(
-                  onTap: () {
-                    Navigator.of(context).pushNamed("/authentication/forgot");
+                  onTap: () async {
+                    LoginData data = await Navigator.of(context)
+                        .pushNamed("/authentication/forgot") as LoginData;
+                    if (data != null) {
+                      Scaffold.of(context).showSnackBar(
+                          SnackBar(content: Text("${data.message}")));
+                      _usernameController.text = data.email;
+                    }
                   },
                   child: Text(
                     "FORGOT PASSWORD?",
@@ -121,9 +127,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   onTap: () async {
                     LoginData data = await Navigator.pushNamed(
                         context, '/authentication/register') as LoginData;
-                    Scaffold.of(context).showSnackBar(
-                        SnackBar(content: Text("${data.message}")));
-                    _usernameController.text = data.email;
+                    if (data != null) {
+                      Scaffold.of(context).showSnackBar(
+                          SnackBar(content: Text("${data.message}")));
+                      _usernameController.text = data.email;
+                    }
                     // print(data);
                   },
                 ),
@@ -138,22 +146,20 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> logIn() async {
     if (!_loginFormKey.currentState.validate()) {
       setState(() {
-        _isWrong = false;
+        _isFailed = false;
       });
       return;
     }
     setState(() {
       _isLoading = true;
     });
-    http.Response response = await http.post(Constants.apiUrl + "user/login",
+    http.Response response = await http.post("${Constants.apiUrl}/user/login",
         body: jsonEncode({
           "email": _usernameController.text,
           "password": _passwordController.text
         }),
         headers: {"Content-Type": "application/json"});
-    setState(() {
-      _isLoading = false;
-    });
+
     UserModel userModel = UserModel.fromJson(jsonDecode(response.body));
     print(userModel.message);
     if (response.statusCode == 200) {
@@ -163,8 +169,11 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     if (response.statusCode == 400) {
       setState(() {
-        _isWrong = true;
+        _isFailed = true;
       });
     }
+    setState(() {
+      _isLoading = false;
+    });
   }
 }
