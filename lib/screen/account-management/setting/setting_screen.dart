@@ -14,7 +14,6 @@ class _SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
     User _user = context.select((AuthenticationModel model) => model.user);
-    print(_user);
     return Scaffold(
       appBar: AppBar(title: Text("Setting")),
       body: Container(
