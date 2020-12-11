@@ -7,7 +7,7 @@ class Constants {
       accentColor: Color(0xFF0084BD),
       scaffoldBackgroundColor: Color(0xFF0D0F12),
       cardColor: Color(0xFF181C20),
-      dialogBackgroundColor: Color(0xFF2d3436),
+      dialogBackgroundColor: Color(0xFF1E2429),
       canvasColor: Color(0xFF181C20),
       focusColor: Color(0xFF0084BD),
       snackBarTheme: SnackBarThemeData(
@@ -18,8 +18,8 @@ class Constants {
       visualDensity: VisualDensity.adaptivePlatformDensity,
       textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF181C20)),
-        foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+        backgroundColor: MaterialStateProperty.all<Color>(Color(0x00000000)),
+        foregroundColor: MaterialStateProperty.all<Color>(Color(0xFF0084BD)),
         shape: MaterialStateProperty.all<OutlinedBorder>(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
       )),

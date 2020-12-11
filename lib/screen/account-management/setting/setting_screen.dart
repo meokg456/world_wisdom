@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:world_wisdom/model/authentication_model.dart';
 import 'package:world_wisdom/model/user.dart';
@@ -26,7 +27,10 @@ class _SettingScreenState extends State<SettingScreen> {
                       backgroundImage: NetworkImage(_user.avatar),
                     ),
                     title: Text(_user.name != null ? _user.name : ""),
-                    onTap: () {},
+                    subtitle: Text(_user.type),
+                    onTap: () {
+                      Keys.mainNavigatorKey.currentState.pushNamed("/profile");
+                    },
                   )
                 : SizedBox(),
             ListTile(
@@ -55,16 +59,54 @@ class _SettingScreenState extends State<SettingScreen> {
               ),
             ),
             Divider(),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 20),
-              child: OutlinedButton(
-                onPressed: () {
-                  Keys.appNavigationKey.currentState
-                      .pushNamed("/authentication/login");
-                },
-                child: Text("SIGN IN"),
-              ),
-            )
+            _user == null
+                ? Container(
+                    margin: EdgeInsets.symmetric(horizontal: 20),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Keys.appNavigationKey.currentState
+                            .pushNamed("/authentication/login");
+                      },
+                      child: Text("SIGN IN"),
+                    ),
+                  )
+                : Container(
+                    margin: EdgeInsets.symmetric(horizontal: 20),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                                  insetPadding: EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 10),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 24, vertical: 10),
+                                  title: Text('Sign out'),
+                                  content: Text(
+                                      'Are you sure you want to sign out? This may remove any downloaded content'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: Text('Hủy'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
+                                    TextButton(
+                                      child: Text('SIGN OUT'),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                        Provider.of<AuthenticationModel>(
+                                                context,
+                                                listen: false)
+                                            .setAuthenticationModel(null);
+                                      },
+                                    ),
+                                  ],
+                                ));
+                      },
+                      child: Text("SIGN OUT"),
+                    ),
+                  )
           ],
         ),
       ),

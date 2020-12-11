@@ -28,13 +28,6 @@ class MainScreenState extends State<MainScreen> {
     TabData("Search", Icons.search, SearchTab())
   ];
 
-  var configScreenMap = {
-    MenuItem.setting: SettingScreen(),
-    MenuItem.feedback: Container(),
-    MenuItem.support: Container(),
-    MenuItem.profile: ProfileScreen()
-  };
-
   void selectedTab(int selectedItem) {
     setState(() {
       _selectedIndex = selectedItem;

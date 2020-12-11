@@ -7,6 +7,10 @@ class AuthenticationModel extends ChangeNotifier {
   String token;
 
   void setAuthenticationModel(UserModel userModel) {
+    if (userModel == null) {
+      user = null;
+      token = null;
+    }
     this.user = userModel.userInfo;
     this.token = userModel.token;
     notifyListeners();
