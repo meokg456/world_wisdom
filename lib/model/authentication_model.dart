@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:world_wisdom/model/user.dart';
 import 'package:world_wisdom/model/user_model.dart';
 import 'package:world_wisdom/model/user_model.dart';
 
@@ -12,6 +14,8 @@ class AuthenticationModel extends ChangeNotifier {
       this.user = null;
       this.token = null;
       this.isLoggedIn = false;
+      notifyListeners();
+      return;
     }
     this.user = userModel.userInfo;
     this.token = userModel.token;

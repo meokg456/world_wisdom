@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:world_wisdom/model/authentication_model.dart';
 import 'package:world_wisdom/model/user_model.dart';
 import 'package:world_wisdom/screen/authentication/login_screen/login_data.dart';
@@ -159,11 +160,14 @@ class _LoginScreenState extends State<LoginScreen> {
           "password": _passwordController.text
         }),
         headers: {"Content-Type": "application/json"});
-
+    print(response.body);
     UserModel userModel = UserModel.fromJson(jsonDecode(response.body));
     if (response.statusCode == 200) {
       Provider.of<AuthenticationModel>(context, listen: false)
           .setAuthenticationModel(userModel);
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      sharedPreferences.setString("token", userModel.token);
       Navigator.pop(context);
     }
     if (response.statusCode == 400) {

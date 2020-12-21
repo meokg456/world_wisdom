@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:world_wisdom/screen/key/key.dart';
-import 'package:world_wisdom/screen/main_screen/main_screen_state.dart';
+import 'package:world_wisdom/screen/main_screen/main_screen.dart';
 
 class MainTabAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String name;

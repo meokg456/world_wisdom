@@ -75,9 +75,9 @@ class _HomeTabState extends State<HomeTab> {
       appBar: MainTabAppBar("Home"),
       body: isLogged
           ? Container(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
               child: ListView.builder(
                   itemCount: categoryModel.categories.length,
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
                   itemBuilder: (context, index) {
                     Category category = categoryModel.categories[index];
                     return Column(
@@ -186,37 +186,6 @@ class _HomeTabState extends State<HomeTab> {
                       ],
                     );
                   }),
-              // child: ListView(
-              //   children: [
-              //     Column(
-              //       children: [
-              //         Row(
-              //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //           children: [
-              //             Text(
-              //               "Software Development",
-              //               style: Theme.of(context).textTheme.headline6,
-              //             ),
-              //             TextButton(onPressed: () {}, child: Text("See all >"))
-              //           ],
-              //         ),
-              //         Container(
-              //           height: 100,
-              //           child: ListView(
-              //             scrollDirection: Axis.horizontal,
-              //             children: [
-              //               Card(
-              //                 child: Column(
-              //                   children: [],
-              //                 ),
-              //               )
-              //             ],
-              //           ),
-              //         )
-              //       ],
-              //     )
-              //   ],
-              // ),
             )
           : Container(
               width: double.infinity,

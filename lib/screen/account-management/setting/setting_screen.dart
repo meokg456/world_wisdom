@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:world_wisdom/model/authentication_model.dart';
+import 'package:world_wisdom/model/user.dart';
 import 'package:world_wisdom/model/user_model.dart';
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/screen/key/key.dart';
