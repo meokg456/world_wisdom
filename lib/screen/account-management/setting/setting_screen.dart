@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:world_wisdom/model/authentication_model.dart';
-import 'package:world_wisdom/model/user.dart';
+import 'package:world_wisdom/model/user_model.dart';
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 
@@ -13,20 +13,20 @@ class SettingScreen extends StatefulWidget {
 class _SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
-    User _user = context.select((AuthenticationModel model) => model.user);
+    User user = context.select((AuthenticationModel model) => model.user);
     return Scaffold(
       appBar: AppBar(title: Text("Setting")),
       body: Container(
         margin: EdgeInsets.symmetric(vertical: 35),
         child: ListView(
           children: [
-            _user != null
+            user != null
                 ? ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: NetworkImage(_user.avatar),
+                      backgroundImage: NetworkImage(user.avatar),
                     ),
-                    title: Text(_user.name != null ? _user.name : ""),
-                    subtitle: Text(_user.type),
+                    title: Text(user.name != null ? user.name : ""),
+                    subtitle: Text(user.type),
                     onTap: () {
                       Keys.mainNavigatorKey.currentState.pushNamed("/profile");
                     },
@@ -35,21 +35,21 @@ class _SettingScreenState extends State<SettingScreen> {
             ListTile(
               title: Text(
                 "Captions",
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headline5,
               ),
               dense: true,
             ),
             ListTile(
               title: Text(
                 "Notifications",
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headline5,
               ),
               dense: true,
             ),
             ListTile(
               title: Text(
                 "App version",
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.headline5,
               ),
               dense: true,
               subtitle: Text(
@@ -58,7 +58,7 @@ class _SettingScreenState extends State<SettingScreen> {
               ),
             ),
             Divider(),
-            _user == null
+            user == null
                 ? Container(
                     margin: EdgeInsets.symmetric(horizontal: 20),
                     child: OutlinedButton(

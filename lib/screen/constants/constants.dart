@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Constants {
-  static String apiUrl = "https://api.letstudy.org";
+  static String apiUrl = "http://api.dev.letstudy.org";
   static ThemeData themeData = ThemeData(
       primaryColor: Color(0xFF181C20),
       accentColor: Color(0xFF0084BD),
@@ -10,6 +10,9 @@ class Constants {
       dialogBackgroundColor: Color(0xFF1E2429),
       canvasColor: Color(0xFF181C20),
       focusColor: Color(0xFF0084BD),
+      textTheme: TextTheme(
+          headline5: TextStyle(fontSize: 20),
+          headline6: TextStyle(fontSize: 14, color: Colors.white)),
       snackBarTheme: SnackBarThemeData(
           backgroundColor: Color(0xFF181C20),
           contentTextStyle: TextStyle(color: Colors.white, fontSize: 18)),

@@ -161,7 +161,6 @@ class _LoginScreenState extends State<LoginScreen> {
         headers: {"Content-Type": "application/json"});
 
     UserModel userModel = UserModel.fromJson(jsonDecode(response.body));
-    print(userModel.message);
     if (response.statusCode == 200) {
       Provider.of<AuthenticationModel>(context, listen: false)
           .setAuthenticationModel(userModel);

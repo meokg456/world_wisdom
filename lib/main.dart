@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/screen/account-management/setting/setting_screen.dart';
@@ -8,8 +9,8 @@ import 'package:world_wisdom/screen/authentication/register/register_screen.dart
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/main_screen.dart';
-
 import 'model/authentication_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   runApp(MyApp());
@@ -29,6 +30,16 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         theme: Constants.themeData,
+        localizationsDelegates: [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: [
+          const Locale('en', ''),
+          const Locale('vi', ''),
+        ],
         initialRoute: '/',
         navigatorKey: Keys.appNavigationKey,
         routes: {
