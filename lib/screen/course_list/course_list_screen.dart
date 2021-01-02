@@ -16,15 +16,32 @@ class _CourseListScreenState extends State<CourseListScreen> {
   CourseModel courseModel = CourseModel(courses: []);
   CourseListData courseListData;
   bool isLoaded = false;
-
+  ScrollController scrollController = ScrollController();
+  int currentPage = 1;
+  int limit = 10;
   void selectMenuItem(MenuItem value) {}
+
+  @override
+  void initState() {
+    super.initState();
+    scrollController.addListener(() {
+      if (scrollController.position.maxScrollExtent ==
+          scrollController.offset) {
+        courseListData.fetchDataFunction(limit, ++currentPage).then((value) {
+          setState(() {
+            courseModel.courses.addAll(value.courses);
+          });
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     courseListData = ModalRoute.of(context).settings.arguments;
     if (!isLoaded) {
       isLoaded = true;
-      courseListData.fetchDataFunction(10, 1).then((value) {
+      courseListData.fetchDataFunction(limit, currentPage).then((value) {
         setState(() {
           courseModel.courses.addAll(value.courses);
         });
@@ -37,7 +54,8 @@ class _CourseListScreenState extends State<CourseListScreen> {
       ),
       body: Container(
         child: ListView.separated(
-          padding: EdgeInsets.symmetric(vertical: 10),
+          controller: scrollController,
+          padding: EdgeInsets.symmetric(vertical: 50),
           itemCount: courseModel.courses.length,
           itemBuilder: (context, index) {
             Course course = courseModel.courses[index];
@@ -72,20 +90,27 @@ class _CourseListScreenState extends State<CourseListScreen> {
                   SizedBox(
                     height: 2,
                   ),
-                  RatingBar.builder(
-                    initialRating: course.formalityPoint,
-                    minRating: 1,
-                    direction: Axis.horizontal,
-                    allowHalfRating: true,
-                    itemCount: 5,
-                    itemSize: 12,
-                    itemPadding: EdgeInsets.symmetric(horizontal: 1),
-                    itemBuilder: (context, _) => Icon(
-                      Icons.star,
-                      color: Colors.amber,
-                    ),
-                    ignoreGestures: true,
-                    onRatingUpdate: (double value) {},
+                  Row(
+                    children: [
+                      RatingBar.builder(
+                        initialRating: course.formalityPoint,
+                        minRating: 1,
+                        direction: Axis.horizontal,
+                        allowHalfRating: true,
+                        itemCount: 5,
+                        itemSize: 12,
+                        itemPadding: EdgeInsets.symmetric(horizontal: 1),
+                        itemBuilder: (context, _) => Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                        ),
+                        ignoreGestures: true,
+                        onRatingUpdate: (double value) {},
+                      ),
+                      SizedBox(width: 5),
+                      Text("(${course.ratedNumber})",
+                          style: Theme.of(context).textTheme.caption),
+                    ],
                   )
                 ],
               ),

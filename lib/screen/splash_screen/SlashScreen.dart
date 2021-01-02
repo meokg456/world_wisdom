@@ -19,11 +19,14 @@ class SplashScreen extends StatelessWidget {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token"
       });
-
-      UserModel userModel = UserModel();
-      userModel.token = token;
-      userModel.userInfo = User.fromJson(jsonDecode(response.body)["payload"]);
-      context.read<AuthenticationModel>().setAuthenticationModel(userModel);
+      if (response.statusCode == 200) {
+        print(response.body);
+        UserModel userModel = UserModel();
+        userModel.token = token;
+        userModel.userInfo =
+            User.fromJson(jsonDecode(response.body)["payload"]);
+        context.read<AuthenticationModel>().setAuthenticationModel(userModel);
+      }
     }
   }
 

@@ -11,6 +11,7 @@ import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/model/search_model/search_form.dart';
 import 'package:world_wisdom/model/search_model/search_response.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
+import 'package:world_wisdom/screen/course_list/course_list_data.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/main_app_bar/main_app_bar.dart';
 import 'package:http/http.dart' as http;
@@ -41,15 +42,24 @@ class _BrowseTabState extends State<BrowseTab> {
         categoryModel = CategoryModel.fromJson(jsonDecode(response.body));
       });
       for (var category in categoryModel.categories) {
-        fetchCourseFormCategory(category.id);
+        var courseModel = CourseModel(courses: []);
+        coursesMap[category.id] = courseModel;
+        fetchCourseFormCategory(category.id, 4, 1).then((value) {
+          setState(() {
+            courseModel.courses.addAll(value.courses);
+          });
+        });
       }
       isLoaded = true;
     }
   }
 
-  Future<void> fetchCourseFormCategory(String id) async {
+  Future<CourseModel> fetchCourseFormCategory(
+      String id, int limit, int page) async {
     SearchForm searchForm = SearchForm.empty();
     searchForm.opt.category.add(id);
+    searchForm.limit = limit;
+    searchForm.offset = page;
     print(searchForm.toJson());
     var response = await http.post("${Constants.apiUrl}/course/search",
         body: jsonEncode(searchForm.toJson()),
@@ -59,10 +69,10 @@ class _BrowseTabState extends State<BrowseTab> {
       print(response.body);
       SearchResponse searchResponse =
           SearchResponse.fromJson(jsonDecode(response.body));
-      setState(() {
-        coursesMap[id] = searchResponse.courseModel;
-      });
-    } else {}
+      return searchResponse.courseModel;
+    } else {
+      return CourseModel(courses: []);
+    }
   }
 
   @override
@@ -124,7 +134,14 @@ class _BrowseTabState extends State<BrowseTab> {
             Category category = categoryModel.categories[index];
             return Column(
               children: [
-                HorizontalCoursesListHeader(category.name, () {}),
+                HorizontalCoursesListHeader(category.name, () {
+                  CourseListData data =
+                      CourseListData("Recommended for you", (limit, page) {
+                    return fetchCourseFormCategory(category.id, limit, page);
+                  });
+                  Keys.mainNavigatorKey.currentState
+                      .pushNamed("/course-list", arguments: data);
+                }),
                 HorizontalCoursesList(coursesMap[category.id] != null
                     ? coursesMap[category.id]
                     : CourseModel(courses: []))

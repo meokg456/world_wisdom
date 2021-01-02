@@ -64,20 +64,27 @@ class HorizontalCoursesList extends StatelessWidget {
                         SizedBox(
                           height: 2,
                         ),
-                        RatingBar.builder(
-                          initialRating: course.formalityPoint,
-                          minRating: 1,
-                          direction: Axis.horizontal,
-                          allowHalfRating: true,
-                          itemCount: 5,
-                          itemSize: 12,
-                          itemPadding: EdgeInsets.symmetric(horizontal: 1),
-                          itemBuilder: (context, _) => Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                          ),
-                          ignoreGestures: true,
-                          onRatingUpdate: (double value) {},
+                        Row(
+                          children: [
+                            RatingBar.builder(
+                              initialRating: course.formalityPoint,
+                              minRating: 1,
+                              direction: Axis.horizontal,
+                              allowHalfRating: true,
+                              itemCount: 5,
+                              itemSize: 12,
+                              itemPadding: EdgeInsets.symmetric(horizontal: 1),
+                              itemBuilder: (context, _) => Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                              ),
+                              ignoreGestures: true,
+                              onRatingUpdate: (double value) {},
+                            ),
+                            SizedBox(width: 5),
+                            Text("(${course.ratedNumber})",
+                                style: Theme.of(context).textTheme.caption),
+                          ],
                         )
                       ],
                     ),
