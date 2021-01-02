@@ -17,7 +17,7 @@ class User {
   String id;
   String email;
   String avatar;
-  dynamic name;
+  String name;
   List<dynamic> favoriteCategories;
   int point;
   String phone;

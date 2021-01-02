@@ -10,12 +10,10 @@ class Constants {
       dialogBackgroundColor: Color(0xFF1E2429),
       canvasColor: Color(0xFF181C20),
       focusColor: Color(0xFF0084BD),
-      textTheme: TextTheme(
-          headline5: TextStyle(fontSize: 20),
-          headline6: TextStyle(fontSize: 14, color: Colors.white)),
+      textTheme: TextTheme(),
       snackBarTheme: SnackBarThemeData(
           backgroundColor: Color(0xFF181C20),
-          contentTextStyle: TextStyle(color: Colors.white, fontSize: 18)),
+          contentTextStyle: TextStyle(color: Colors.white)),
       //0081B9 //0084BD
       brightness: Brightness.dark,
       visualDensity: VisualDensity.adaptivePlatformDensity,

@@ -14,6 +14,7 @@ class MainTabAppBar extends StatelessWidget implements PreferredSizeWidget {
         break;
       case MenuItem.profile:
         Keys.mainNavigatorKey.currentState.pushNamed("/profile");
+        break;
     }
   }
 

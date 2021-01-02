@@ -1,20 +1,17 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:intl/intl.dart';
-import 'package:world_wisdom/model/authentication_model.dart';
-import 'package:world_wisdom/model/category.dart';
-import 'package:world_wisdom/model/category_model.dart';
-import 'package:world_wisdom/model/course.dart';
-import 'package:world_wisdom/model/course_model.dart';
-import 'package:world_wisdom/model/search_form.dart';
-import 'package:world_wisdom/model/search_response.dart';
+import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
+import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
+import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
+import 'package:world_wisdom/screen/course_list/course_list_data.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/main_app_bar/main_app_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list.dart';
+import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list_header.dart';
 
 class HomeTab extends StatefulWidget {
   @override
@@ -22,8 +19,10 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> {
-  CategoryModel categoryModel = CategoryModel(categories: []);
-  Map<String, CourseModel> coursesMap = {};
+  CourseModel trendingCourse = CourseModel(courses: []);
+  CourseModel newCourse = CourseModel(courses: []);
+  CourseModel bestCourse = CourseModel(courses: []);
+  CourseModel recommendedForYouCourse = CourseModel(courses: []);
   bool isLogged = false;
   bool isLoaded = false;
 
@@ -32,160 +31,124 @@ class _HomeTabState extends State<HomeTab> {
     super.initState();
   }
 
-  Future<void> fetchCategoryData() async {
-    if (isLoaded) return;
-    var response = await http.get("${Constants.apiUrl}/category/all");
-    if (response.statusCode == 200) {
-      setState(() {
-        categoryModel = CategoryModel.fromJson(jsonDecode(response.body));
-      });
-      for (var category in categoryModel.categories) {
-        fetchCourseFormCategory(category.id);
-      }
-      isLoaded = true;
-    }
-  }
-
-  Future<void> fetchCourseFormCategory(String id) async {
-    SearchForm searchForm = SearchForm.empty();
-    searchForm.opt.category.add(id);
-    print(searchForm.toJson());
-    var response = await http.post("${Constants.apiUrl}/course/search",
-        body: jsonEncode(searchForm.toJson()),
+  Future<CourseModel> fetchTrendingCourseData(int limit, int page) async {
+    var response = await http.post("${Constants.apiUrl}/course/top-sell",
+        body: jsonEncode({"limit": limit, "page": page}),
         headers: {"Content-Type": "application/json"});
-    print(response.statusCode);
     if (response.statusCode == 200) {
       print(response.body);
-      SearchResponse searchResponse =
-          SearchResponse.fromJson(jsonDecode(response.body));
-      setState(() {
-        coursesMap[id] = searchResponse.courseModel;
-      });
-    } else {}
+      return CourseModel.fromJson(jsonDecode(response.body));
+    }
+    return CourseModel(courses: []);
+  }
+
+  Future<CourseModel> fetchTopNewCourseData(int limit, int page) async {
+    var response = await http.post("${Constants.apiUrl}/course/top-new",
+        body: jsonEncode({"limit": limit, "page": page}),
+        headers: {"Content-Type": "application/json"});
+    if (response.statusCode == 200) {
+      print(response.body);
+      return CourseModel.fromJson(jsonDecode(response.body));
+    }
+    return CourseModel(courses: []);
+  }
+
+  Future<CourseModel> fetchTopRateCourseData(int limit, int page) async {
+    var response = await http.post("${Constants.apiUrl}/course/top-rate",
+        body: jsonEncode({"limit": limit, "page": page}),
+        headers: {"Content-Type": "application/json"});
+    if (response.statusCode == 200) {
+      print(response.body);
+      return CourseModel.fromJson(jsonDecode(response.body));
+    }
+    return CourseModel(courses: []);
+  }
+
+  Future<CourseModel> fetchRecommendedCourseData(int limit, int page) async {
+    var user = context.select((AuthenticationModel model) => model.user);
+    var response = await http.post(
+        "${Constants.apiUrl}/course/courses-user-favorite-categories",
+        body: jsonEncode({"userId": user.id}),
+        headers: {"Content-Type": "application/json"});
+    if (response.statusCode == 200) {
+      print(response.body);
+      return CourseModel.fromJson(jsonDecode(response.body));
+    }
+    return CourseModel(courses: []);
   }
 
   @override
   Widget build(BuildContext context) {
     isLogged = context.select((AuthenticationModel model) => model.isLoggedIn);
-    if (isLogged) {
-      fetchCategoryData();
+
+    if (isLogged && isLoaded == false) {
+      isLoaded = true;
+      fetchTrendingCourseData(4, 1).then((value) {
+        setState(() {
+          trendingCourse = value;
+        });
+      });
+      fetchTopNewCourseData(4, 1).then((value) {
+        setState(() {
+          newCourse = value;
+        });
+      });
+      ;
+      fetchTopRateCourseData(4, 1).then((value) {
+        setState(() {
+          bestCourse = value;
+        });
+      });
+      ;
+      fetchRecommendedCourseData(4, 1).then((value) {
+        setState(() {
+          recommendedForYouCourse = value;
+        });
+      });
+      ;
     }
 
     return Scaffold(
       appBar: MainTabAppBar("Home"),
       body: isLogged
           ? Container(
-              child: ListView.builder(
-                  itemCount: categoryModel.categories.length,
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-                  itemBuilder: (context, index) {
-                    Category category = categoryModel.categories[index];
-                    return Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              category.name,
-                              style: Theme.of(context).textTheme.headline5,
-                            ),
-                            TextButton(
-                                onPressed: () {}, child: Text("See all >"))
-                          ],
-                        ),
-                        Container(
-                          height: 220,
-                          child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: coursesMap[category.id] == null
-                                  ? 0
-                                  : coursesMap[category.id].count,
-                              itemBuilder: (context, index) {
-                                Course course =
-                                    coursesMap[category.id].courses[index];
-                                return Container(
-                                  margin: EdgeInsets.only(right: 10),
-                                  child: Card(
-                                    child: Container(
-                                      padding: EdgeInsets.all(10),
-                                      width: 200,
-                                      child: SingleChildScrollView(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Image.network(
-                                              course.imageUrl,
-                                              width: double.infinity,
-                                              height: 100,
-                                              fit: BoxFit.fill,
-                                            ),
-                                            SizedBox(
-                                              height: 10,
-                                            ),
-                                            Text(
-                                              course.title,
-                                              overflow: TextOverflow.clip,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .headline6,
-                                            ),
-                                            SizedBox(
-                                              height: 3,
-                                            ),
-                                            Text(
-                                              course.name,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .caption,
-                                            ),
-                                            SizedBox(
-                                              height: 2,
-                                            ),
-                                            Text(
-                                              course.price == 0
-                                                  ? "Free"
-                                                  : NumberFormat.currency(
-                                                          locale: Localizations
-                                                                  .localeOf(
-                                                                      context)
-                                                              .toString())
-                                                      .format(course.price),
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .caption,
-                                            ),
-                                            SizedBox(
-                                              height: 2,
-                                            ),
-                                            RatingBar.builder(
-                                              initialRating:
-                                                  course.ratedNumber.toDouble(),
-                                              minRating: 1,
-                                              direction: Axis.horizontal,
-                                              allowHalfRating: true,
-                                              itemCount: 5,
-                                              itemSize: 12,
-                                              itemPadding: EdgeInsets.symmetric(
-                                                  horizontal: 1),
-                                              itemBuilder: (context, _) => Icon(
-                                                Icons.star,
-                                                color: Colors.amber,
-                                              ),
-                                              ignoreGestures: true,
-                                              onRatingUpdate: (double value) {},
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }),
-                        ),
-                      ],
-                    );
-                  }),
+              child: ListView(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                children: [
+                  Column(
+                    children: [
+                      HorizontalCoursesListHeader("Trending", () {
+                        CourseListData data =
+                            CourseListData("Trending", fetchTrendingCourseData);
+                        Keys.mainNavigatorKey.currentState
+                            .pushNamed("/course-list", arguments: data);
+                      }),
+                      HorizontalCoursesList(trendingCourse),
+                      HorizontalCoursesListHeader("Top new", () {
+                        CourseListData data =
+                            CourseListData("Top new", fetchTopNewCourseData);
+                        Keys.mainNavigatorKey.currentState
+                            .pushNamed("/course-list", arguments: data);
+                      }),
+                      HorizontalCoursesList(newCourse),
+                      HorizontalCoursesListHeader("Top rate", () {
+                        CourseListData data =
+                            CourseListData("Top rate", fetchTopRateCourseData);
+                        Keys.mainNavigatorKey.currentState
+                            .pushNamed("/course-list", arguments: data);
+                      }),
+                      HorizontalCoursesList(bestCourse),
+                      HorizontalCoursesListHeader("Recommended for you", () {
+                        CourseListData data = CourseListData(
+                            "Recommended for you", fetchRecommendedCourseData);
+                        Keys.mainNavigatorKey.currentState
+                            .pushNamed("/course-list", arguments: data);
+                      }),
+                      HorizontalCoursesList(recommendedForYouCourse),
+                    ],
+                  ),
+                ],
+              ),
             )
           : Container(
               width: double.infinity,

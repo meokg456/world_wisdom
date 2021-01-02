@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:world_wisdom/model/authentication_model.dart';
-import 'package:world_wisdom/model/user.dart';
-import 'package:world_wisdom/model/user_model.dart';
-import 'package:world_wisdom/screen/key/key.dart';
+import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
+import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override

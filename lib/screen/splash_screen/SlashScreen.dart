@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:world_wisdom/model/authentication_model.dart';
-import 'package:world_wisdom/model/user.dart';
-import 'package:world_wisdom/model/user_model.dart';
+import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
+import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
+import 'package:world_wisdom/model/authentication_model/user_model/user_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';

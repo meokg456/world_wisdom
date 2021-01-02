@@ -1,4 +1,4 @@
-import 'package:world_wisdom/model/course_model.dart';
+import 'package:world_wisdom/model/course_model/course_model.dart';
 
 class SearchResponse {
   SearchResponse({

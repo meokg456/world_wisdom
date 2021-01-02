@@ -1,4 +1,4 @@
-import 'package:world_wisdom/model/category.dart';
+import 'package:world_wisdom/model/category_model/category.dart';
 
 class CategoryModel {
   CategoryModel({

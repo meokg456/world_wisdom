@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "640660229683",
+    "project_id": "world-wisdom-300209",
+    "storage_bucket": "world-wisdom-300209.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640660229683:android:013865c042528f60c3dd46",
+        "android_client_info": {
+          "package_name": "com.swordfish.world_wisdom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "640660229683-nud387edte98th70rii9ta2b7soq1q5f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVPilm0fup09ttwM9GRmYiU48Hp4fqdQw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "640660229683-nud387edte98th70rii9ta2b7soq1q5f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

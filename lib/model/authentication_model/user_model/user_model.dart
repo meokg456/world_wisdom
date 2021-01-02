@@ -1,4 +1,4 @@
-import 'package:world_wisdom/model/user.dart';
+import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 
 class UserModel {
   UserModel({

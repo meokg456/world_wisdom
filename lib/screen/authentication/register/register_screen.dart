@@ -135,7 +135,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: register,
                           child: Text(
                             "Confirm",
-                            style: TextStyle(fontSize: 16),
                           )),
                     ),
             ],

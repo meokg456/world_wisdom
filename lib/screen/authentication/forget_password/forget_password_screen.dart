@@ -58,14 +58,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               height: 100,
             ),
             Container(
-              child: Image.asset("resources/images/brand.jpg"),
+              child: Image.asset(
+                "resources/images/online-course.png",
+                height: 100,
+              ),
             ),
             SizedBox(
-              height: 100,
+              height: 20,
             ),
             Text(
               "Forgot Password",
-              style: TextStyle(fontSize: 35, fontWeight: FontWeight.w200),
+              style: Theme.of(context).textTheme.headline4,
             ),
             SizedBox(
               height: 40,
@@ -78,14 +81,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   children: [
                     Text(
                       "Enter your email address and we'll send you a link to reset your password",
-                      style: TextStyle(fontSize: 16),
+                      style: Theme.of(context).textTheme.subtitle1,
                     ),
                     TextFormField(
                       controller: _emailController,
                       validator: Validator.validateEmail,
                       decoration: InputDecoration(
                           labelText: "Email",
-                          labelStyle: TextStyle(fontSize: 20)),
+                          labelStyle: Theme.of(context).textTheme.overline),
                     ),
                     SizedBox(
                       height: 10,

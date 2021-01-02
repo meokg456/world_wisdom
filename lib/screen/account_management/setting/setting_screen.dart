@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:world_wisdom/model/authentication_model.dart';
-import 'package:world_wisdom/model/user.dart';
-import 'package:world_wisdom/model/user_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
+import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -93,12 +93,17 @@ class _SettingScreenState extends State<SettingScreen> {
                                     ),
                                     TextButton(
                                       child: Text('SIGN OUT'),
-                                      onPressed: () {
+                                      onPressed: () async {
                                         Navigator.of(context).pop();
                                         Provider.of<AuthenticationModel>(
                                                 context,
                                                 listen: false)
                                             .setAuthenticationModel(null);
+                                        SharedPreferences sharedPreferences =
+                                            await SharedPreferences
+                                                .getInstance();
+                                        sharedPreferences.setString(
+                                            "token", null);
                                       },
                                     ),
                                   ],

@@ -1,15 +1,17 @@
 import 'dart:convert';
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:world_wisdom/model/authentication_model.dart';
-import 'package:world_wisdom/model/user_model.dart';
+import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
+import 'package:world_wisdom/model/authentication_model/user_model/user_model.dart';
 import 'package:world_wisdom/screen/authentication/login_screen/login_data.dart';
 import 'package:world_wisdom/screen/authentication/validator/validator.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:world_wisdom/screen/key/key.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -17,12 +19,44 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+
   final _usernameController = new TextEditingController();
   final _passwordController = new TextEditingController();
   final _loginFormKey = new GlobalKey<FormState>();
 
   bool _isFailed = false;
   bool _isLoading = false;
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
+      print(googleSignInAccount.id);
+      var response =
+          await http.post("${Constants.apiUrl}/user/login-google-mobile",
+              body: jsonEncode({
+                "user": {
+                  "email": googleSignInAccount.email,
+                  "id": googleSignInAccount.id
+                }
+              }),
+              headers: {"Content-Type": "application/json"});
+      print(response.body);
+      UserModel userModel = UserModel.fromJson(jsonDecode(response.body));
+      Provider.of<AuthenticationModel>(context, listen: false)
+          .setAuthenticationModel(userModel);
+      SharedPreferences sharedPreferences =
+          await SharedPreferences.getInstance();
+      sharedPreferences.setString("token", userModel.token);
+      Keys.appNavigationKey.currentState.pop();
+    } catch (error) {
+      print(error);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,14 +111,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: logIn,
                             child: Text(
                               "SIGN IN",
-                              style: TextStyle(fontSize: 16),
+                              style: Theme.of(context).textTheme.button,
                             )),
                       ),
-                SizedBox(
-                  height: 20,
-                ),
-                InkWell(
-                  onTap: () async {
+                TextButton(
+                  onPressed: () async {
                     LoginData data = await Navigator.of(context)
                         .pushNamed("/authentication/forgot") as LoginData;
                     if (data != null) {
@@ -95,37 +126,28 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: Text(
                     "FORGOT PASSWORD?",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).accentColor,
-                        fontWeight: FontWeight.w600),
                   ),
-                ),
-                SizedBox(
-                  height: 10,
                 ),
                 Container(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: () {},
-                    child: Text(
-                      "USE SINGLE SIGN-ON(SSO)",
-                      style: TextStyle(fontSize: 16),
+                    onPressed: signInWithGoogle,
+                    child: ListTile(
+                      leading: Image.asset("resources/images/google_logo.png"),
+                      title: Text(
+                        "SIGN IN WITH GOOGLE",
+                      ),
+                      dense: true,
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 30),
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: 10,
-                ),
-                InkWell(
+                TextButton(
                   child: Text(
                     "SIGN UP FREE?",
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).accentColor,
-                        fontWeight: FontWeight.w600),
                   ),
-                  onTap: () async {
+                  onPressed: () async {
                     LoginData data = await Navigator.pushNamed(
                         context, '/authentication/register') as LoginData;
                     if (data != null) {

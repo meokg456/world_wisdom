@@ -26,7 +26,7 @@ class _DownloadTabState extends State<DownloadTab> {
               margin: EdgeInsets.only(top: 8),
               child: Text(
                 "Watch your courses on the go!",
-                style: TextStyle(fontSize: 24),
+                style: Theme.of(context).textTheme.headline6,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -34,7 +34,7 @@ class _DownloadTabState extends State<DownloadTab> {
               margin: EdgeInsets.only(top: 8, bottom: 20),
               child: Text(
                 "Download courses so you can countinue to skill up-even when you're offline.",
-                style: TextStyle(fontSize: 18),
+                style: Theme.of(context).textTheme.subtitle1,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -48,7 +48,7 @@ class _DownloadTabState extends State<DownloadTab> {
                   },
                   child: Text(
                     "FIND A COURSE TO DOWNLOAD",
-                    style: TextStyle(fontSize: 16),
+                    style: Theme.of(context).textTheme.button,
                   )),
             ),
             Container(
