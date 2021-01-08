@@ -64,14 +64,12 @@ class _HomeTabState extends State<HomeTab> {
     return CourseModel(courses: []);
   }
 
-  Future<CourseModel> fetchRecommendedCourseData(int limit, int page) async {
-    var user = context.select((AuthenticationModel model) => model.user);
-    var response = await http.post(
-        "${Constants.apiUrl}/course/courses-user-favorite-categories",
-        body: jsonEncode({"userId": user.id}),
-        headers: {"Content-Type": "application/json"});
+  Future<CourseModel> fetchRecommendedCourseData(
+      User user, int limit, int page) async {
+    var response = await http.get(
+        "${Constants.apiUrl}/user/recommend-course/${user.id}/$limit/$page");
     if (response.statusCode == 200) {
-      print(response.body);
+      print("Recommended - ${response.body}");
       return CourseModel.fromJson(jsonDecode(response.body));
     }
     return CourseModel(courses: []);
@@ -80,6 +78,7 @@ class _HomeTabState extends State<HomeTab> {
   @override
   Widget build(BuildContext context) {
     isLogged = context.select((AuthenticationModel model) => model.isLoggedIn);
+    var user = context.select((AuthenticationModel model) => model.user);
 
     if (isLogged && isLoaded == false) {
       isLoaded = true;
@@ -93,19 +92,18 @@ class _HomeTabState extends State<HomeTab> {
           newCourse = value;
         });
       });
-      ;
+
       fetchTopRateCourseData(4, 1).then((value) {
         setState(() {
           bestCourse = value;
         });
       });
-      ;
-      fetchRecommendedCourseData(4, 1).then((value) {
+
+      fetchRecommendedCourseData(user, 4, 1).then((value) {
         setState(() {
           recommendedForYouCourse = value;
         });
       });
-      ;
     }
 
     return Scaffold(
@@ -140,7 +138,9 @@ class _HomeTabState extends State<HomeTab> {
                       HorizontalCoursesList(bestCourse),
                       HorizontalCoursesListHeader("Recommended for you", () {
                         CourseListData data = CourseListData(
-                            "Recommended for you", fetchRecommendedCourseData);
+                            "Recommended for you", (limit, page) {
+                          return fetchRecommendedCourseData(user, limit, page);
+                        });
                         Keys.mainNavigatorKey.currentState
                             .pushNamed("/course-list", arguments: data);
                       }),

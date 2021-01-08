@@ -62,10 +62,15 @@ class _CourseListScreenState extends State<CourseListScreen> {
             Duration duration =
                 Duration(seconds: (course.totalHours * 3600).round());
             return ListTile(
-              leading: Image.network(
-                course.imageUrl,
-                width: 70,
-              ),
+              leading: course.imageUrl == null
+                  ? Image.asset(
+                      "resources/images/online-course.png",
+                      width: 70,
+                    )
+                  : Image.network(
+                      course.imageUrl,
+                      width: 70,
+                    ),
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -74,8 +79,10 @@ class _CourseListScreenState extends State<CourseListScreen> {
                   SizedBox(
                     height: 5,
                   ),
-                  Text(course.instructorUserName,
-                      style: Theme.of(context).textTheme.caption),
+                  course.instructorUserName == null
+                      ? SizedBox()
+                      : Text(course.instructorUserName,
+                          style: Theme.of(context).textTheme.caption),
                   SizedBox(
                     height: 2,
                   ),

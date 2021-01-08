@@ -17,10 +17,16 @@ class _DownloadTabState extends State<DownloadTab> {
         padding: EdgeInsets.symmetric(horizontal: 50),
         child: Column(
           children: [
+            SizedBox(
+              height: 30,
+            ),
             Icon(
               Icons.arrow_circle_down_outlined,
               size: 100,
               color: Color(0xFF2D3137),
+            ),
+            SizedBox(
+              height: 30,
             ),
             Container(
               margin: EdgeInsets.only(top: 8),

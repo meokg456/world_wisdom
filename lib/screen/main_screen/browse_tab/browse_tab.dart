@@ -136,7 +136,7 @@ class _BrowseTabState extends State<BrowseTab> {
               children: [
                 HorizontalCoursesListHeader(category.name, () {
                   CourseListData data =
-                      CourseListData("Recommended for you", (limit, page) {
+                      CourseListData(category.name, (limit, page) {
                     return fetchCourseFormCategory(category.id, limit, page);
                   });
                   Keys.mainNavigatorKey.currentState

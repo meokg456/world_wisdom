@@ -45,10 +45,12 @@ class HorizontalCoursesList extends StatelessWidget {
                         SizedBox(
                           height: 3,
                         ),
-                        Text(
-                          course.instructorUserName,
-                          style: Theme.of(context).textTheme.caption,
-                        ),
+                        course.instructorUserName == null
+                            ? SizedBox()
+                            : Text(
+                                course.instructorUserName,
+                                style: Theme.of(context).textTheme.caption,
+                              ),
                         SizedBox(
                           height: 2,
                         ),
