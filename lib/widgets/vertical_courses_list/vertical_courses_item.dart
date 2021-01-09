@@ -43,7 +43,7 @@ class VerticalCoursesListItem extends StatelessWidget {
             height: 2,
           ),
           Text(
-              "${course.price == 0 ? "Free" : NumberFormat.currency(locale: Localizations.localeOf(context).toString()).format(course.price)} · ${duration.inHours}h ${duration.inMinutes}m",
+              "${course.price == 0 || course.price == null ? "Free" : NumberFormat.currency(locale: Localizations.localeOf(context).toString()).format(course.price)} · ${duration.inHours}h ${duration.inMinutes}m",
               style: Theme.of(context).textTheme.caption),
           SizedBox(
             height: 2,
