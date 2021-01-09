@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
-import 'package:world_wisdom/model/authentication_model/user_model/user_model.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/search_v2_model/search_history.dart';
 import 'package:world_wisdom/model/search_v2_model/search_history_model.dart';
@@ -45,13 +44,31 @@ class _SearchTabState extends State<SearchTab>
     coursesListScrollController.addListener(() {
       if (coursesListScrollController.offset ==
           coursesListScrollController.position.maxScrollExtent) {
-        search(searchTextFieldController.text, token, limit, ++page);
+        search(searchTextFieldController.text, token, limit, ++page)
+            .then((result) {
+          setState(() {
+            courses.addAll(result.payload.courses.data);
+            totalCourses = result.payload.courses.total;
+            totalInstructors = result.payload.instructors.total;
+            isFocus = false;
+            isLoaded = false;
+          });
+        });
       }
     });
     instructorsListScrollController.addListener(() {
       if (instructorsListScrollController.offset ==
           instructorsListScrollController.position.maxScrollExtent) {
-        search(searchTextFieldController.text, token, limit, ++page);
+        search(searchTextFieldController.text, token, limit, ++page)
+            .then((result) {
+          setState(() {
+            instructors.addAll(result.payload.instructors.data);
+            totalCourses = result.payload.courses.total;
+            totalInstructors = result.payload.instructors.total;
+            isFocus = false;
+            isLoaded = false;
+          });
+        });
       }
     });
     tabController.addListener(() {
@@ -77,7 +94,8 @@ class _SearchTabState extends State<SearchTab>
     }
   }
 
-  void search(String keyword, String token, int limit, int page) async {
+  Future<SearchV2Response> search(
+      String keyword, String token, int limit, int page) async {
     SearchV2Form searchForm = SearchV2Form.empty();
     searchForm.keyword = keyword;
     searchForm.token = token;
@@ -90,15 +108,15 @@ class _SearchTabState extends State<SearchTab>
     print(response.statusCode);
     if (response.statusCode == 200) {
       print(response.body);
-      SearchV2Response searchResponse =
-          SearchV2Response.fromJson(jsonDecode(response.body));
-      setState(() {
-        courses.addAll(searchResponse.payload.courses.data);
-        instructors.addAll(searchResponse.payload.instructors.data);
-        totalCourses = searchResponse.payload.courses.total;
-        totalInstructors = searchResponse.payload.instructors.total;
-      });
+      return SearchV2Response.fromJson(jsonDecode(response.body));
+      // setState(() {
+      //   courses.addAll(searchResponse.payload.courses.data);
+      //   instructors.addAll(searchResponse.payload.instructors.data);
+      //   totalCourses = searchResponse.payload.courses.total;
+      //   totalInstructors = searchResponse.payload.instructors.total;
+      // });
     }
+    return null;
   }
 
   void deleteSearchHistory(String id, String token) async {
@@ -240,12 +258,15 @@ class _SearchTabState extends State<SearchTab>
             });
           },
           onSubmitted: (text) {
-            courses = [];
-            instructors = [];
-            search(text, token, limit, page);
-            setState(() {
-              isFocus = false;
-              isLoaded = false;
+            search(text, token, limit, page).then((result) {
+              setState(() {
+                courses = result.payload.courses.data;
+                instructors = result.payload.instructors.data;
+                totalCourses = result.payload.courses.total;
+                totalInstructors = result.payload.instructors.total;
+                isFocus = false;
+                isLoaded = false;
+              });
             });
           },
           decoration: InputDecoration(
@@ -280,12 +301,16 @@ class _SearchTabState extends State<SearchTab>
                   onTap: () {
                     tabController.index = 0;
                     searchTextFieldController.text = searchHistory.content;
-                    courses = [];
-                    instructors = [];
-                    search(searchHistory.content, token, limit, page);
-                    setState(() {
-                      isFocus = false;
-                      isLoaded = false;
+                    search(searchHistory.content, token, limit, page)
+                        .then((result) {
+                      setState(() {
+                        courses = result.payload.courses.data;
+                        instructors = result.payload.instructors.data;
+                        totalCourses = result.payload.courses.total;
+                        totalInstructors = result.payload.instructors.total;
+                        isFocus = false;
+                        isLoaded = false;
+                      });
                     });
                   },
                   leading: Icon(Icons.history),
