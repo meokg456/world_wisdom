@@ -82,24 +82,24 @@ class _HomeTabState extends State<HomeTab> {
 
     if (isLogged && isLoaded == false) {
       isLoaded = true;
-      fetchTrendingCourseData(4, 1).then((value) {
+      fetchTrendingCourseData(4, 0).then((value) {
         setState(() {
           trendingCourse = value;
         });
       });
-      fetchTopNewCourseData(4, 1).then((value) {
+      fetchTopNewCourseData(4, 0).then((value) {
         setState(() {
           newCourse = value;
         });
       });
 
-      fetchTopRateCourseData(4, 1).then((value) {
+      fetchTopRateCourseData(4, 0).then((value) {
         setState(() {
           bestCourse = value;
         });
       });
 
-      fetchRecommendedCourseData(user, 4, 1).then((value) {
+      fetchRecommendedCourseData(user, 4, 0).then((value) {
         setState(() {
           recommendedForYouCourse = value;
         });

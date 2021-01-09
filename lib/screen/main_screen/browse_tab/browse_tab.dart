@@ -44,7 +44,7 @@ class _BrowseTabState extends State<BrowseTab> {
       for (var category in categoryModel.categories) {
         var courseModel = CourseModel(courses: []);
         coursesMap[category.id] = courseModel;
-        fetchCourseFormCategory(category.id, 4, 1).then((value) {
+        fetchCourseFormCategory(category.id, 4, 0).then((value) {
           setState(() {
             courseModel.courses.addAll(value.courses);
           });
