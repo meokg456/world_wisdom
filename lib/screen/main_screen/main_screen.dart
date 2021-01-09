@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:world_wisdom/screen/account_management/profile/profile_screen.dart';
 import 'package:world_wisdom/screen/account_management/setting/setting_screen.dart';
-import 'package:world_wisdom/screen/course_list/course_list_screen.dart';
+import 'package:world_wisdom/screen/course/course_detail/course_detail_screen.dart';
+import 'package:world_wisdom/screen/course/course_detail/video_screen.dart';
+import 'package:world_wisdom/screen/course/course_list/course_list_screen.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/browse_tab/browse_tab.dart';
 import 'package:world_wisdom/screen/main_screen/download_tab/download_tab.dart';
@@ -78,6 +80,9 @@ class _MainScreenState extends State<MainScreen> {
                 break;
               case '/course-list':
                 builder = (BuildContext context) => CourseListScreen();
+                break;
+              case '/course-detail':
+                builder = (BuildContext context) => CourseDetailScreen();
                 break;
               default:
                 throw Exception('Invalid route: ${settings.name}');

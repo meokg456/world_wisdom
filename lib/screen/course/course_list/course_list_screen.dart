@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:intl/intl.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
-import 'package:world_wisdom/screen/course_list/course_list_data.dart';
+import 'package:world_wisdom/screen/course/course_list/course_list_data.dart';
 import 'package:world_wisdom/widgets/vertical_courses_list/vertical_courses_item.dart';
 
 enum MenuItem { download, share }

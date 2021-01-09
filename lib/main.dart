@@ -1,15 +1,13 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:world_wisdom/generated/l10n.dart';
-import 'package:world_wisdom/screen/account_management/setting/setting_screen.dart';
 import 'package:world_wisdom/screen/authentication/forget_password/forget_password_screen.dart';
 import 'package:world_wisdom/screen/authentication/login_screen/login_screen.dart';
 import 'package:world_wisdom/screen/authentication/register/register_screen.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
+import 'package:world_wisdom/screen/course/course_detail/video_screen.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/main_screen.dart';
 import 'package:world_wisdom/screen/splash_screen/SlashScreen.dart';
@@ -49,6 +47,7 @@ class MyApp extends StatelessWidget {
           '/authentication/login': (context) => LoginScreen(),
           '/authentication/forgot': (context) => ForgotPasswordScreen(),
           '/authentication/register': (context) => RegisterScreen(),
+          '/watching': (context) => VideoScreen()
         },
       ),
     );

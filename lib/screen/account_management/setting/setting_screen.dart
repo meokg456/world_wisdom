@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
+import 'package:world_wisdom/model/authentication_model/user_model/user_type.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -27,7 +28,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       backgroundImage: NetworkImage(user.avatar),
                     ),
                     title: Text(user.name != null ? user.name : ""),
-                    subtitle: Text(user.type),
+                    subtitle: Text(typeValues.reverse[user.type]),
                     onTap: () {
                       Keys.mainNavigatorKey.currentState.pushNamed("/profile");
                     },

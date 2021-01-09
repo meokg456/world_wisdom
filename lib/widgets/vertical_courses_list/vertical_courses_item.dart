@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
-import 'package:world_wisdom/screen/course_list/course_list_screen.dart';
+import 'package:world_wisdom/screen/course/course_list/course_list_screen.dart';
 
 class VerticalCoursesListItem extends StatelessWidget {
   final Course course;

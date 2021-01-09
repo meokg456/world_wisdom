@@ -5,7 +5,7 @@ import 'package:world_wisdom/model/authentication_model/authentication_model.dar
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
-import 'package:world_wisdom/screen/course_list/course_list_data.dart';
+import 'package:world_wisdom/screen/course/course_list/course_list_data.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/main_app_bar/main_app_bar.dart';
 import 'package:provider/provider.dart';
@@ -150,51 +150,53 @@ class _HomeTabState extends State<HomeTab> {
                 ],
               ),
             )
-          : Container(
-              width: double.infinity,
-              child: Column(
-                children: [
-                  Container(
-                    margin: EdgeInsets.only(top: 80, bottom: 20),
-                    child: Text(
-                      "Let's get you started",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  IconButton(
-                      icon: Icon(
-                        Icons.apps_outlined,
-                        color: Colors.white,
+          : SingleChildScrollView(
+              child: Container(
+                width: double.infinity,
+                child: Column(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(top: 80, bottom: 20),
+                      child: Text(
+                        "Let's get you started",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w600),
                       ),
-                      onPressed: () {
-                        BottomNavigationBar bottomNavigationBar =
-                            Keys.bottomNavigationBarKey.currentWidget;
-                        bottomNavigationBar.onTap(2);
-                      }),
-                  Container(
-                    margin: EdgeInsets.only(top: 10, bottom: 30),
-                    child: Text(
-                      "Browse new & popular courses",
                     ),
-                  ),
-                  IconButton(
-                      icon: Icon(
-                        Icons.search,
-                        color: Colors.white,
+                    IconButton(
+                        icon: Icon(
+                          Icons.apps_outlined,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          BottomNavigationBar bottomNavigationBar =
+                              Keys.bottomNavigationBarKey.currentWidget;
+                          bottomNavigationBar.onTap(2);
+                        }),
+                    Container(
+                      margin: EdgeInsets.only(top: 10, bottom: 30),
+                      child: Text(
+                        "Browse new & popular courses",
                       ),
-                      onPressed: () {
-                        BottomNavigationBar bottomNavigationBar =
-                            Keys.bottomNavigationBarKey.currentWidget;
-                        bottomNavigationBar.onTap(3);
-                      }),
-                  Container(
-                    margin: EdgeInsets.only(top: 5, bottom: 20),
-                    child: Text(
-                      "Search the library",
                     ),
-                  ),
-                ],
+                    IconButton(
+                        icon: Icon(
+                          Icons.search,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          BottomNavigationBar bottomNavigationBar =
+                              Keys.bottomNavigationBarKey.currentWidget;
+                          bottomNavigationBar.onTap(3);
+                        }),
+                    Container(
+                      margin: EdgeInsets.only(top: 5, bottom: 20),
+                      child: Text(
+                        "Search the library",
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
     );

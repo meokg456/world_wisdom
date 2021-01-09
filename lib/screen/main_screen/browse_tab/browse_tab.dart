@@ -1,17 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:intl/intl.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/category_model/category.dart';
 import 'package:world_wisdom/model/category_model/category_model.dart';
-import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/model/search_model/search_form.dart';
 import 'package:world_wisdom/model/search_model/search_response.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
-import 'package:world_wisdom/screen/course_list/course_list_data.dart';
+import 'package:world_wisdom/screen/course/course_list/course_list_data.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/main_app_bar/main_app_bar.dart';
 import 'package:http/http.dart' as http;
