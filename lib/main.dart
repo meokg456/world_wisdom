@@ -7,10 +7,10 @@ import 'package:world_wisdom/screen/authentication/forget_password/forget_passwo
 import 'package:world_wisdom/screen/authentication/login_screen/login_screen.dart';
 import 'package:world_wisdom/screen/authentication/register/register_screen.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
-import 'package:world_wisdom/screen/course/course_detail/video_screen.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/main_screen.dart';
 import 'package:world_wisdom/screen/splash_screen/SlashScreen.dart';
+import 'package:world_wisdom/screen_mode/screen_mode.dart';
 import 'model/authentication_model/authentication_model.dart';
 
 Future<void> main() async {
@@ -26,7 +26,8 @@ class MyApp extends StatelessWidget {
         );
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => AuthenticationModel())
+        ChangeNotifierProvider(create: (context) => AuthenticationModel()),
+        ChangeNotifierProvider(create: (context) => ScreenMode()),
       ],
       child: MaterialApp(
         theme: Constants.themeData,
@@ -47,7 +48,6 @@ class MyApp extends StatelessWidget {
           '/authentication/login': (context) => LoginScreen(),
           '/authentication/forgot': (context) => ForgotPasswordScreen(),
           '/authentication/register': (context) => RegisterScreen(),
-          '/watching': (context) => VideoScreen()
         },
       ),
     );

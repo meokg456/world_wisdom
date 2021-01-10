@@ -24,6 +24,7 @@ class Section {
   List<Lesson> lesson;
   double sumHours;
   int sumLessonFinish;
+  bool isExpanded = false;
 
   factory Section.fromJson(Map<String, dynamic> json) => Section(
         id: json["id"],

@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:world_wisdom/screen/account_management/profile/profile_screen.dart';
 import 'package:world_wisdom/screen/account_management/setting/setting_screen.dart';
 import 'package:world_wisdom/screen/course/course_detail/course_detail_screen.dart';
-import 'package:world_wisdom/screen/course/course_detail/video_screen.dart';
 import 'package:world_wisdom/screen/course/course_list/course_list_screen.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/browse_tab/browse_tab.dart';
 import 'package:world_wisdom/screen/main_screen/download_tab/download_tab.dart';
 import 'package:world_wisdom/screen/main_screen/home_tab/home_tab.dart';
 import 'package:world_wisdom/screen/main_screen/search_tab/search_tab.dart';
+import 'package:provider/provider.dart';
+import 'package:world_wisdom/screen_mode/screen_mode.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -53,6 +54,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isFullScreen = context.select((ScreenMode mode) => mode.isFullScreen);
     return WillPopScope(
       onWillPop: onPop,
       child: Scaffold(
@@ -95,20 +97,22 @@ class _MainScreenState extends State<MainScreen> {
             );
           },
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          key: Keys.bottomNavigationBarKey,
-          items: List<BottomNavigationBarItem>.generate(
-              4,
-              (index) => BottomNavigationBarItem(
-                  icon: Icon(tabs[index].iconData),
-                  label: tabs[index].tabName)),
-          showUnselectedLabels: true,
-          onTap: selectedTab,
-          currentIndex: _selectedIndex,
-          unselectedItemColor: Colors.white,
-          selectedItemColor: Color(0xFF0081B9),
-          type: BottomNavigationBarType.fixed,
-        ),
+        bottomNavigationBar: isFullScreen
+            ? null
+            : BottomNavigationBar(
+                key: Keys.bottomNavigationBarKey,
+                items: List<BottomNavigationBarItem>.generate(
+                    4,
+                    (index) => BottomNavigationBarItem(
+                        icon: Icon(tabs[index].iconData),
+                        label: tabs[index].tabName)),
+                showUnselectedLabels: true,
+                onTap: selectedTab,
+                currentIndex: _selectedIndex,
+                unselectedItemColor: Colors.white,
+                selectedItemColor: Color(0xFF0081B9),
+                type: BottomNavigationBarType.fixed,
+              ),
       ),
     );
   }
