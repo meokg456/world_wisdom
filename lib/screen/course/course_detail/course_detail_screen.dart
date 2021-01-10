@@ -34,6 +34,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   int currentSectionIndex = -1;
   bool isRegistered = false;
   bool isExercisesExpanded = false;
+  bool isLiked = false;
   ExercisesInLessonModel exercisesInLessonModel;
 
   Future<CourseDetail> fetchCourseData(String courseId, String userId) async {
@@ -44,6 +45,33 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       return CourseDetailModel.fromJson(jsonDecode(response.body)).payload;
     }
     return null;
+  }
+
+  Future<bool> getLikeStatus(String token, String courseId) async {
+    var response = await http.get(
+        "${Constants.apiUrl}/user/get-course-like-status/$courseId",
+        headers: {"Authorization": "Bearer $token"});
+    print(response.body);
+    if (response.statusCode == 200) {
+      Map json = jsonDecode(response.body);
+      return json['likeStatus'] == null ? false : json['likeStatus'];
+    }
+    return false;
+  }
+
+  Future<bool> likeCourse(String token, String courseId) async {
+    var response = await http.post("${Constants.apiUrl}/user/like-course",
+        body: jsonEncode({"courseId": courseId}),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        });
+    print(response.body);
+    if (response.statusCode == 200) {
+      Map json = jsonDecode(response.body);
+      return json['likeStatus'] == null ? false : json['likeStatus'];
+    }
+    return false;
   }
 
   Future<ExercisesInLessonModel> fetchExercisesInLesson(
@@ -144,8 +172,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           setState(() {
             isRegistered = checkOwnCourseModel.payload.isUserOwnCourse;
           });
-          isLoading = false;
         });
+        getLikeStatus(authenticationModel.token, courseId).then((value) {
+          setState(() {
+            isLiked = value;
+          });
+        });
+        isLoading = false;
       });
     }
     return Scaffold(
@@ -247,11 +280,165 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         ],
                       ),
                       SizedBox(
-                        height: 5,
+                        height: 10,
                       ),
-                      Text(
-                        courseDetail.description,
-                        maxLines: descriptionMaxLines,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  isLiked
+                                      ? Icons.favorite
+                                      : Icons.favorite_outline,
+                                  color: Colors.redAccent,
+                                ),
+                                onPressed: () {
+                                  likeCourse(
+                                          authenticationModel.token, courseId)
+                                      .then((value) {
+                                    setState(() {
+                                      isLiked = value;
+                                    });
+                                  });
+                                },
+                              ),
+                              Text("Like")
+                            ],
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  Icons.share,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () {},
+                              ),
+                              Text("Share")
+                            ],
+                          ),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.download_rounded),
+                                onPressed: () {},
+                              ),
+                              Text("Download")
+                            ],
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Card(
+                        margin: EdgeInsets.all(0),
+                        child: Container(
+                          padding: EdgeInsets.all(20),
+                          child: Text(
+                            courseDetail.subtitle,
+                            style: Theme.of(context).textTheme.subtitle1,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Card(
+                        margin: EdgeInsets.all(0),
+                        child: Container(
+                          padding: EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  "Achievements",
+                                  style: Theme.of(context).textTheme.headline6,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Container(
+                                  padding: EdgeInsets.only(left: 10),
+                                  child: Column(
+                                    children:
+                                        courseDetail.learnWhat.map((skill) {
+                                      return Text("- $skill");
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Card(
+                        margin: EdgeInsets.all(0),
+                        child: Container(
+                          padding: EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  "Requirements",
+                                  style: Theme.of(context).textTheme.headline6,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Container(
+                                  padding: EdgeInsets.only(left: 10),
+                                  child: Column(
+                                    children:
+                                        courseDetail.requirement.map((skill) {
+                                      return Text("- $skill");
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Card(
+                        margin: EdgeInsets.all(0),
+                        child: Container(
+                          padding: EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  "Descriptions",
+                                  style: Theme.of(context).textTheme.headline6,
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  courseDetail.description,
+                                  maxLines: descriptionMaxLines,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                       IconButton(
                           icon: Icon(descriptionMaxLines != null

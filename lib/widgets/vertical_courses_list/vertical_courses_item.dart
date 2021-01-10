@@ -3,6 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/screen/course/course_list/course_list_screen.dart';
+import 'package:world_wisdom/screen/key/key.dart';
 
 class VerticalCoursesListItem extends StatelessWidget {
   final Course course;
@@ -14,6 +15,10 @@ class VerticalCoursesListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     Duration duration = Duration(seconds: (course.totalHours * 3600).round());
     return ListTile(
+      onTap: () {
+        Keys.mainNavigatorKey.currentState
+            .pushNamed("/course-detail", arguments: course.id);
+      },
       leading: course.imageUrl == null
           ? Image.asset(
               "resources/images/online-course.png",

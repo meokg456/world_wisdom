@@ -40,7 +40,7 @@ class CourseDetail {
   String subtitle;
   int price;
   String description;
-  dynamic requirement;
+  List<String> requirement;
   List<String> learnWhat;
   int soldNumber;
   int ratedNumber;
@@ -69,7 +69,7 @@ class CourseDetail {
         subtitle: json["subtitle"],
         price: json["price"],
         description: json["description"],
-        requirement: json["requirement"],
+        requirement: List<String>.from(json["requirement"].map((x) => x)),
         learnWhat: List<String>.from(json["learnWhat"].map((x) => x)),
         soldNumber: json["soldNumber"],
         ratedNumber: json["ratedNumber"],
