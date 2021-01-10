@@ -11,6 +11,7 @@ import 'package:world_wisdom/model/course_model/course_detail.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/model/course_model/course_detail_model.dart';
+import 'package:world_wisdom/model/exercise_model/exercises_in_lesson_model.dart';
 import 'package:world_wisdom/model/lesson_model/lesson.dart';
 import 'package:world_wisdom/model/section_model/section.dart';
 import 'package:world_wisdom/model/video_progress_model/video_progress_model.dart';
@@ -29,9 +30,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   CourseDetail courseDetail;
   FlickManager flickManager;
   int descriptionMaxLines = 2;
-  int currentLesson = -1;
-  int currentSection = -1;
+  int currentLessonIndex = -1;
+  int currentSectionIndex = -1;
   bool isRegistered = false;
+  bool isExercisesExpanded = false;
+  ExercisesInLessonModel exercisesInLessonModel;
 
   Future<CourseDetail> fetchCourseData(String courseId, String userId) async {
     var response = await http
@@ -39,6 +42,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     print(response.body);
     if (response.statusCode == 200) {
       return CourseDetailModel.fromJson(jsonDecode(response.body)).payload;
+    }
+    return null;
+  }
+
+  Future<ExercisesInLessonModel> fetchExercisesInLesson(
+      String token, String lessonId) async {
+    var response = await http.post(
+        "${Constants.apiUrl}/exercise/student/list-exercise-lesson",
+        body: jsonEncode({"lessonId": lessonId}),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        });
+    print(response.body);
+    if (response.statusCode == 200) {
+      return ExercisesInLessonModel.fromJson(jsonDecode(response.body));
     }
     return null;
   }
@@ -131,6 +150,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
     return Scaffold(
       floatingActionButton: FloatingActionButton(
+        mini: true,
         child: Icon(isRegistered ? Icons.done : Icons.app_registration),
         onPressed: () {
           if (!isRegistered) {
@@ -180,7 +200,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ),
                 Expanded(
                   child: ListView(
-                    padding: EdgeInsets.all(20),
+                    padding: EdgeInsets.only(
+                        left: 20, top: 20, right: 20, bottom: 100),
                     children: [
                       Text(
                         courseDetail.title,
@@ -279,66 +300,113 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                   children: section.lesson.map((lesson) {
                                     Duration lessonDuration = Duration(
                                         seconds: (lesson.hours * 3600).round());
-                                    return ListTile(
-                                      dense: true,
-                                      leading: currentSection ==
-                                                  section.numberOrder &&
-                                              currentLesson ==
-                                                  lesson.numberOrder
-                                          ? Icon(
-                                              Icons.play_circle_fill,
-                                              color:
-                                                  Theme.of(context).accentColor,
-                                            )
-                                          : Icon(
-                                              Icons.circle,
-                                              color: Theme.of(context)
-                                                  .backgroundColor,
-                                            ),
-                                      title: InkWell(
-                                        child: Text(lesson.name),
-                                        onTap: isRegistered
-                                            ? () {
-                                                print(lesson.id);
-                                                getVideoInfo(
-                                                        authenticationModel
-                                                            .token,
-                                                        courseId,
-                                                        lesson.id)
-                                                    .then((videoProgressModel) {
-                                                  if (videoProgressModel ==
-                                                      null) {
-                                                    return;
-                                                  }
-                                                  VideoPlayerController
-                                                      newController =
+                                    return Column(
+                                      children: [
+                                        ListTile(
+                                          dense: true,
+                                          leading: currentSectionIndex ==
+                                                      section.numberOrder &&
+                                                  currentLessonIndex ==
+                                                      lesson.numberOrder
+                                              ? Icon(
+                                                  Icons.play_circle_fill,
+                                                  color: Theme.of(context)
+                                                      .accentColor,
+                                                )
+                                              : Icon(
+                                                  Icons.circle,
+                                                  color: Theme.of(context)
+                                                      .backgroundColor,
+                                                ),
+                                          title: InkWell(
+                                            child: Text(lesson.name),
+                                            onTap: isRegistered
+                                                ? () {
+                                                    print(lesson.id);
+                                                    getVideoInfo(
+                                                            authenticationModel
+                                                                .token,
+                                                            courseId,
+                                                            lesson.id)
+                                                        .then(
+                                                            (videoProgressModel) {
+                                                      if (videoProgressModel ==
+                                                          null) {
+                                                        return;
+                                                      }
                                                       VideoPlayerController
-                                                          .network(
-                                                              videoProgressModel
-                                                                  .payload
-                                                                  .videoUrl);
-                                                  flickManager
-                                                      .handleChangeVideo(
-                                                          newController);
-                                                  setState(() {
-                                                    currentSection =
-                                                        section.numberOrder;
-                                                    currentLesson =
-                                                        lesson.numberOrder;
-                                                  });
-                                                });
-                                              }
-                                            : null,
-                                      ),
-                                      trailing: Text(
-                                          "${lessonDuration.inHours > 0 ? "${lessonDuration.inHours}:" : ""}${lessonDuration.inHours > 0 ? (lessonDuration.inMinutes % 60).toString().padLeft(2, '0') : lessonDuration.inMinutes}:${(lessonDuration.inSeconds % 60).toString().padLeft(2, '0')}"),
+                                                          newController =
+                                                          VideoPlayerController
+                                                              .network(
+                                                                  videoProgressModel
+                                                                      .payload
+                                                                      .videoUrl);
+                                                      flickManager
+                                                          .handleChangeVideo(
+                                                              newController);
+                                                      fetchExercisesInLesson(
+                                                              authenticationModel
+                                                                  .token,
+                                                              lesson.id)
+                                                          .then((value) {
+                                                        setState(() {
+                                                          currentSectionIndex =
+                                                              section
+                                                                  .numberOrder;
+                                                          currentLessonIndex =
+                                                              lesson
+                                                                  .numberOrder;
+                                                          exercisesInLessonModel =
+                                                              value;
+                                                        });
+                                                      });
+                                                    });
+                                                  }
+                                                : null,
+                                          ),
+                                          trailing: Text(
+                                              "${lessonDuration.inHours > 0 ? "${lessonDuration.inHours}:" : ""}${lessonDuration.inHours > 0 ? (lessonDuration.inMinutes % 60).toString().padLeft(2, '0') : lessonDuration.inMinutes}:${(lessonDuration.inSeconds % 60).toString().padLeft(2, '0')}"),
+                                        ),
+                                      ],
                                     );
                                   }).toList(),
                                 ),
                               ),
                               isExpanded: section.isExpanded);
                         }).toList(),
-                      )
+                      ),
+                      exercisesInLessonModel == null ||
+                              exercisesInLessonModel.payload.exercises.length ==
+                                  0
+                          ? SizedBox()
+                          : ExpansionPanelList(
+                              expansionCallback: (int index, bool isExpanded) {
+                                setState(() {
+                                  isExercisesExpanded = !isExercisesExpanded;
+                                });
+                              },
+                              children: [
+                                ExpansionPanel(
+                                    headerBuilder: (BuildContext context,
+                                        bool isExpanded) {
+                                      return ListTile(
+                                        title: Text("Exercise"),
+                                      );
+                                    },
+                                    body: Column(
+                                      children: exercisesInLessonModel
+                                          .payload.exercises
+                                          .map((exercise) {
+                                        return ListTile(
+                                          dense: true,
+                                          leading: Icon(Icons.article_outlined),
+                                          title: Text(exercise.title),
+                                        );
+                                      }).toList(),
+                                    ),
+                                    isExpanded: isExercisesExpanded)
+                              ],
+                            )
                     ],
                   ),
                 )

@@ -5,6 +5,8 @@ class Constants {
   static ThemeData themeData = ThemeData(
       primaryColor: Color(0xFF181C20),
       accentColor: Color(0xFF0084BD),
+      floatingActionButtonTheme:
+          FloatingActionButtonThemeData(backgroundColor: Color(0x550084BD)),
       scaffoldBackgroundColor: Color(0xFF0D0F12),
       cardColor: Color(0xFF181C20),
       dialogBackgroundColor: Color(0xFF1E2429),
