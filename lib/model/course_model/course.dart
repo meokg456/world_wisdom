@@ -55,9 +55,9 @@ class Course {
 
   factory Course.fromJson(Map<String, dynamic> json) => Course(
         id: json["id"],
-        title: json["title"],
+        title: json["title"] == null ? json["courseTitle"] : json["title"],
         subtitle: json["subtitle"],
-        price: json["price"],
+        price: json["price"] == null ? json["coursePrice"] : json["price"],
         description: json["description"],
         requirement: json["requirement"] == null
             ? null
@@ -65,29 +65,46 @@ class Course {
         learnWhat: json["learnWhat"] == null
             ? null
             : List<String>.from(json["learnWhat"].map((x) => x)),
-        soldNumber: json["soldNumber"],
+        soldNumber: json["soldNumber"] != null
+            ? json["soldNumber"]
+            : json["courseSoldNumber"],
         ratedNumber: json["ratedNumber"],
         videoNumber: json["videoNumber"],
-        totalHours: json["totalHours"].toDouble(),
-        formalityPoint: json["formalityPoint"].toDouble(),
-        contentPoint:
-            json["contentPoint"] != null ? json["contentPoint"].toDouble() : 0,
-        presentationPoint: json["presentationPoint"].toDouble(),
-        imageUrl: json["imageUrl"],
+        totalHours:
+            json["totalHours"] != null ? json["totalHours"].toDouble() : null,
+        formalityPoint: json["formalityPoint"] != null
+            ? json["formalityPoint"].toDouble()
+            : json["courseFormalityPoint"].toDouble(),
+        contentPoint: json["contentPoint"] != null
+            ? json["contentPoint"].toDouble()
+            : json["courseContentPoint"] != null
+                ? json["courseContentPoint"].toDouble()
+                : null,
+        presentationPoint: json["presentationPoint"] != null
+            ? json["presentationPoint"].toDouble()
+            : json["coursePresentationPoint"].toDouble(),
+        imageUrl:
+            json["imageUrl"] == null ? json["courseImage"] : json["imageUrl"],
         promoVidUrl: json["promoVidUrl"],
         status: json["status"],
         isHidden: json["isHidden"],
         isDeleted: json["isDeleted"],
-        createdAt: DateTime.parse(json["createdAt"] == null
-            ? "2020-12-20T09:23:16.988Z"
-            : json["createdAt"]),
-        updatedAt: DateTime.parse(json["updatedAt"]),
+        createdAt: json["createdAt"] == null
+            ? null
+            : DateTime.parse(json["createdAt"]),
+        updatedAt: json["updatedAt"] == null
+            ? null
+            : DateTime.parse(json["updatedAt"]),
         instructorId: json["instructorId"],
         typeUploadVideoLesson: json["typeUploadVideoLesson"],
-        instructorUserId: json["instructor.user.id"],
+        instructorUserId: json["instructor.user.id"] == null
+            ? json["instructorId"]
+            : json["instructor.user.id"],
         instructorUserName: json["instructor.user.name"] != null
             ? json["instructor.user.name"]
-            : json["name"],
+            : json["name"] != null
+                ? json["name"]
+                : json["instructorName"],
       );
 
   Map<String, dynamic> toJson() => {

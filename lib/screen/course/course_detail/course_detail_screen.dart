@@ -7,10 +7,12 @@ import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/check_own_course_model/check_own_course_model.dart';
+import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/course_model/course_detail.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/model/course_model/course_detail_model.dart';
+import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/model/exercise_model/exercises_in_lesson_model.dart';
 import 'package:world_wisdom/model/lesson_model/lesson.dart';
 import 'package:world_wisdom/model/section_model/section.dart';
@@ -147,6 +149,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     String courseId = ModalRoute.of(context).settings.arguments;
     AuthenticationModel authenticationModel =
         Provider.of<AuthenticationModel>(context);
+    CourseModel favoriteCourseModel = Provider.of<CourseModel>(context);
     Duration duration = Duration();
     if (isLoading) {
       fetchCourseData(courseId, authenticationModel.user.id).then((value) {
@@ -302,6 +305,21 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                     setState(() {
                                       isLiked = value;
                                     });
+                                    Course course = Course(
+                                      id: courseDetail.id,
+                                      title: courseDetail.title,
+                                      price: courseDetail.price,
+                                      imageUrl: courseDetail.imageUrl,
+                                      instructorId: courseDetail.instructorId,
+                                      instructorUserName:
+                                          courseDetail.instructor.name,
+                                      contentPoint: courseDetail.contentPoint,
+                                      formalityPoint:
+                                          courseDetail.formalityPoint,
+                                      presentationPoint:
+                                          courseDetail.presentationPoint,
+                                    );
+                                    favoriteCourseModel.add(course);
                                   });
                                 },
                               ),

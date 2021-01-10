@@ -69,7 +69,9 @@ class CourseDetail {
         subtitle: json["subtitle"],
         price: json["price"],
         description: json["description"],
-        requirement: List<String>.from(json["requirement"].map((x) => x)),
+        requirement: json["requirement"] == null
+            ? []
+            : List<String>.from(json["requirement"].map((x) => x)),
         learnWhat: List<String>.from(json["learnWhat"].map((x) => x)),
         soldNumber: json["soldNumber"],
         ratedNumber: json["ratedNumber"],

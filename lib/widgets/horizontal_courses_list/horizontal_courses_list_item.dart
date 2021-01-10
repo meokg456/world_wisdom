@@ -82,8 +82,10 @@ class HorizontalCoursesListItem extends StatelessWidget {
                         onRatingUpdate: (double value) {},
                       ),
                       SizedBox(width: 5),
-                      Text("(${course.ratedNumber})",
-                          style: Theme.of(context).textTheme.caption),
+                      course.ratedNumber != null
+                          ? Text("(${course.ratedNumber})",
+                              style: Theme.of(context).textTheme.caption)
+                          : SizedBox(),
                     ],
                   )
                 ],

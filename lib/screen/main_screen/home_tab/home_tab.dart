@@ -23,7 +23,7 @@ class _HomeTabState extends State<HomeTab> {
   CourseModel newCourse = CourseModel(courses: []);
   CourseModel bestCourse = CourseModel(courses: []);
   CourseModel recommendedForYouCourse = CourseModel(courses: []);
-  bool isLogged = false;
+  CourseModel favoriteCourse = CourseModel(courses: []);
   bool isLoaded = false;
 
   @override
@@ -64,6 +64,19 @@ class _HomeTabState extends State<HomeTab> {
     return CourseModel(courses: []);
   }
 
+  Future<CourseModel> fetchFavoriteCoursesData(String token) async {
+    var response = await http
+        .get("${Constants.apiUrl}/user/get-favorite-courses", headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json"
+    });
+    print(response.body);
+    if (response.statusCode == 200) {
+      return CourseModel.fromJson(jsonDecode(response.body));
+    }
+    return CourseModel(courses: []);
+  }
+
   Future<CourseModel> fetchRecommendedCourseData(
       User user, int limit, int page) async {
     var response = await http.get(
@@ -77,10 +90,11 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    isLogged = context.select((AuthenticationModel model) => model.isLoggedIn);
-    var user = context.select((AuthenticationModel model) => model.user);
+    AuthenticationModel authenticationModel =
+        Provider.of<AuthenticationModel>(context);
+    favoriteCourse = Provider.of<CourseModel>(context);
 
-    if (isLogged && isLoaded == false) {
+    if (authenticationModel.isLoggedIn && isLoaded == false) {
       isLoaded = true;
       fetchTrendingCourseData(4, 0).then((value) {
         setState(() {
@@ -99,16 +113,19 @@ class _HomeTabState extends State<HomeTab> {
         });
       });
 
-      fetchRecommendedCourseData(user, 4, 0).then((value) {
+      fetchRecommendedCourseData(authenticationModel.user, 4, 0).then((value) {
         setState(() {
           recommendedForYouCourse = value;
         });
+      });
+      fetchFavoriteCoursesData(authenticationModel.token).then((value) {
+        favoriteCourse.setCourseModel(value);
       });
     }
 
     return Scaffold(
       appBar: MainTabAppBar("Home"),
-      body: isLogged
+      body: authenticationModel.isLoggedIn
           ? Container(
               child: ListView(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
@@ -139,12 +156,26 @@ class _HomeTabState extends State<HomeTab> {
                       HorizontalCoursesListHeader("Recommended for you", () {
                         CourseListData data = CourseListData(
                             "Recommended for you", (limit, page) {
-                          return fetchRecommendedCourseData(user, limit, page);
+                          return fetchRecommendedCourseData(
+                              authenticationModel.user, limit, page);
                         });
                         Keys.mainNavigatorKey.currentState
                             .pushNamed("/course-list", arguments: data);
                       }),
                       HorizontalCoursesList(recommendedForYouCourse),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Favorite",
+                            style: Theme.of(context).textTheme.headline6,
+                          )),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      HorizontalCoursesList(favoriteCourse),
                     ],
                   ),
                 ],

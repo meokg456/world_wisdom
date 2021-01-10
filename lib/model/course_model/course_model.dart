@@ -1,11 +1,22 @@
+import 'package:flutter/cupertino.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 
-class CourseModel {
+class CourseModel extends ChangeNotifier {
   CourseModel({
     this.courses,
   });
 
   List<Course> courses = [];
+
+  void add(Course course) {
+    courses.add(course);
+    notifyListeners();
+  }
+
+  void setCourseModel(CourseModel courseModel) {
+    this.courses = courseModel.courses;
+    notifyListeners();
+  }
 
   factory CourseModel.fromJson(Map<String, dynamic> json) => CourseModel(
         courses: List<Course>.from(json["rows"] != null
