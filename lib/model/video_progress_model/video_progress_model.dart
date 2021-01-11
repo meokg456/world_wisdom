@@ -39,13 +39,14 @@ class VideoProgression {
   });
 
   String videoUrl;
-  dynamic currentTime;
-  dynamic isFinish;
+  double currentTime;
+  bool isFinish;
 
   factory VideoProgression.fromJson(Map<String, dynamic> json) =>
       VideoProgression(
         videoUrl: json["videoUrl"],
-        currentTime: json["currentTime"],
+        currentTime:
+            json["currentTime"] == null ? 0 : json["currentTime"].toDouble(),
         isFinish: json["isFinish"],
       );
 

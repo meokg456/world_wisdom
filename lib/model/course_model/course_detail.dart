@@ -1,5 +1,4 @@
 import 'package:world_wisdom/model/course_model/course.dart';
-import 'package:world_wisdom/model/course_model/course_like_category.dart';
 import 'package:world_wisdom/model/instructor_model/instructor.dart';
 import 'package:world_wisdom/model/rate_model/rating.dart';
 import 'package:world_wisdom/model/section_model/section.dart';
@@ -61,7 +60,7 @@ class CourseDetail {
   Ratings ratings;
   String averagePoint;
   Instructor instructor;
-  List<CoursesLikeCategory> coursesLikeCategory;
+  List<Course> coursesLikeCategory;
 
   factory CourseDetail.fromJson(Map<String, dynamic> json) => CourseDetail(
         id: json["id"],
@@ -103,8 +102,8 @@ class CourseDetail {
             : Instructor.fromJson(json["instructor"]),
         coursesLikeCategory: json["coursesLikeCategory"] == null
             ? null
-            : List<CoursesLikeCategory>.from(json["coursesLikeCategory"]
-                .map((x) => CoursesLikeCategory.fromJson(x))),
+            : List<Course>.from(json["coursesLikeCategory"]
+                .map((x) => Course.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {

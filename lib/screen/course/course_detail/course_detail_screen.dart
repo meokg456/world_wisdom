@@ -21,6 +21,8 @@ import 'package:world_wisdom/model/video_progress_model/video_progress_model.dar
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:world_wisdom/screen_mode/screen_mode.dart';
 import 'package:world_wisdom/widgets/custom_rounded_rectangle_track_shape/custom_rounded_rectangle_track_shape.dart';
+import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class CourseDetailScreen extends StatefulWidget {
   @override
@@ -40,10 +42,15 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool isFullScreen = false;
   bool isControlHided = false;
   bool isVideoEnded = false;
+  bool isYoutubeFullScreen = false;
+  String videoId;
+  Duration youtubeLastWatchedPosition = Duration();
   ExercisesInLessonModel exercisesInLessonModel;
   Future<void> initialize;
   double playedRatio = 0.0;
+
   Timer videoControlTimer;
+  YoutubePlayerController youtubePlayerController;
 
   Future<CourseDetail> fetchCourseData(String courseId) async {
     var response = await http.get(
@@ -172,18 +179,20 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void updateCurrentVideoPosition(double currentTime) async {
-    if (currentLessonId == null ||
-        videoPlayerController == null ||
-        videoPlayerController.value.duration == null) return;
-    var response = await http.put(
-        "${Constants.apiUrl}/lesson/update-current-time-learn-video",
-        body: jsonEncode(
-            {"lessonId": currentLessonId, "currentTime": currentTime}),
-        headers: {
-          "Authorization": "Bearer ${authenticationModel.token}",
-          "Content-Type": "application/json"
-        });
-    print(response.body);
+    if ((currentLessonId != null &&
+            videoPlayerController != null &&
+            videoPlayerController.value.duration != null) ||
+        (videoId != null && currentLessonId != null)) {
+      var response = await http.put(
+          "${Constants.apiUrl}/lesson/update-current-time-learn-video",
+          body: jsonEncode(
+              {"lessonId": currentLessonId, "currentTime": currentTime}),
+          headers: {
+            "Authorization": "Bearer ${authenticationModel.token}",
+            "Content-Type": "application/json"
+          });
+      print(response.body);
+    }
   }
 
   void updateVideoPlayer() {
@@ -221,6 +230,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       isControlHided = false;
       isVideoEnded = false;
       playedRatio = 0.0;
+    });
+  }
+
+  void initYoutubeVideoPlayer() {
+    setState(() {
+      youtubePlayerController =
+          YoutubePlayerController(initialVideoId: videoId);
     });
   }
 
@@ -273,172 +289,178 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   Widget getVideoPlayerWidget() {
-    return FutureBuilder(
-      future: initialize,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            videoPlayerController.value.duration != null) {
-          // If the VideoPlayerController has finished initialization, use
-          // the data it provides to limit the aspect ratio of the VideoPlayer.
-          return Container(
-            alignment: Alignment.center,
-            margin: EdgeInsets.only(bottom: 10),
-            child: GestureDetector(
-              onTap: onScreenTap,
-              child: AspectRatio(
-                aspectRatio: videoPlayerController.value.aspectRatio,
-                // Use the VideoPlayer widget to display the video.
-                child: Stack(children: [
-                  VideoPlayer(videoPlayerController),
-                  AnimatedOpacity(
-                    opacity: !isControlHided ? 1.0 : 0.0,
-                    duration: Duration(milliseconds: 500),
-                    child: Container(
-                      color: Colors.black38,
-                    ),
-                  ),
-                  AnimatedOpacity(
-                    opacity: !isControlHided ? 1.0 : 0.0,
-                    duration: Duration(milliseconds: 500),
-                    child: Center(
-                      child: IconButton(
-                        icon: Icon(
-                          isVideoEnded
-                              ? Icons.replay
-                              : videoPlayerController.value.isPlaying
-                                  ? Icons.pause
-                                  : Icons.play_arrow,
-                          size: 40,
-                        ),
-                        onPressed: () {
-                          if (isControlHided) {
-                            onScreenTap();
-                            return;
-                          }
-                          videoControlTimer.cancel();
-                          if (isVideoEnded) {
-                            videoPlayerController
-                                .seekTo(Duration())
-                                .whenComplete(() {
-                              setState(() {
-                                isVideoEnded = false;
-                              });
-                            });
-                          }
-                          if (videoPlayerController.value.isPlaying) {
-                            videoPlayerController.pause();
-                          } else {
-                            videoPlayerController.play();
-                            videoControlTimer = Timer(Duration(seconds: 2), () {
-                              setState(() {
-                                if (videoPlayerController.value.isPlaying)
-                                  isControlHided = true;
-                              });
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                  AnimatedOpacity(
-                    opacity: !isControlHided ? 1.0 : 0.0,
-                    duration: Duration(milliseconds: 500),
-                    child: Container(
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-                      child: Align(
-                        alignment: Alignment.bottomLeft,
-                        child: Text(
-                          "${videoPlayerController.value.position.inHours > 0 ? "${videoPlayerController.value.position.inHours}:" : ""}${videoPlayerController.value.position.inHours > 0 ? (videoPlayerController.value.position.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.position.inMinutes}:${(videoPlayerController.value.position.inSeconds % 60).toString().padLeft(2, '0')} / ${videoPlayerController.value.duration.inHours > 0 ? "${videoPlayerController.value.duration.inHours}:" : ""}${videoPlayerController.value.duration.inHours > 0 ? (videoPlayerController.value.duration.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.duration.inMinutes}:${(videoPlayerController.value.duration.inSeconds % 60).toString().padLeft(2, '0')}",
-                        ),
-                      ),
-                    ),
-                  ),
-                  AnimatedOpacity(
-                    opacity: !isControlHided ? 1.0 : 0.0,
-                    duration: Duration(milliseconds: 500),
-                    child: Align(
-                      alignment: Alignment.bottomRight,
-                      child: IconButton(
-                        icon: Icon(isFullScreen
-                            ? Icons.fullscreen_exit
-                            : Icons.fullscreen),
-                        onPressed: () {
-                          if (isControlHided) {
-                            onScreenTap();
-                            return;
-                          }
-                          if (isFullScreen) {
-                            exitFullScreen();
-                          } else {
-                            enterFullScreen();
-                          }
-                          setState(() {
-                            isFullScreen = !isFullScreen;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                  AnimatedOpacity(
-                    opacity: !isControlHided ? 1.0 : 0.0,
-                    duration: Duration(milliseconds: 500),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Container(
-                        height: 20,
-                        child: SliderTheme(
-                          data: SliderThemeData(
-                            overlayShape:
-                                RoundSliderOverlayShape(overlayRadius: 0),
-                            trackShape: CustomRoundedRectSliderTrackShape(),
+    return courseDetail.promoVidUrl == null
+        ? Container(
+            height: 220, child: Center(child: CircularProgressIndicator()))
+        : FutureBuilder(
+            future: initialize,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  videoPlayerController.value.duration != null) {
+                // If the VideoPlayerController has finished initialization, use
+                // the data it provides to limit the aspect ratio of the VideoPlayer.
+                return Container(
+                  alignment: Alignment.center,
+                  margin: EdgeInsets.only(bottom: 10),
+                  child: GestureDetector(
+                    onTap: onScreenTap,
+                    child: AspectRatio(
+                      aspectRatio: videoPlayerController.value.aspectRatio,
+                      // Use the VideoPlayer widget to display the video.
+                      child: Stack(children: [
+                        VideoPlayer(videoPlayerController),
+                        AnimatedOpacity(
+                          opacity: !isControlHided ? 1.0 : 0.0,
+                          duration: Duration(milliseconds: 500),
+                          child: Container(
+                            color: Colors.black38,
                           ),
-                          child: Slider(
-                            onChanged: (double value) {
-                              if (isControlHided) {
-                                onScreenTap();
-                                return;
-                              }
-                              Duration seekDuration = Duration(
-                                  seconds: (value *
-                                          videoPlayerController
-                                              .value.duration.inSeconds)
-                                      .round());
-                              videoPlayerController
-                                  .seekTo(seekDuration)
-                                  .whenComplete(() {
-                                setState(() {
-                                  playedRatio = value;
-                                  isVideoEnded = false;
-                                });
-                                videoPlayerController.play();
-                                videoControlTimer =
-                                    Timer(Duration(seconds: 2), () {
-                                  setState(() {
-                                    if (videoPlayerController.value.isPlaying)
-                                      isControlHided = true;
+                        ),
+                        AnimatedOpacity(
+                          opacity: !isControlHided ? 1.0 : 0.0,
+                          duration: Duration(milliseconds: 500),
+                          child: Center(
+                            child: IconButton(
+                              icon: Icon(
+                                isVideoEnded
+                                    ? Icons.replay
+                                    : videoPlayerController.value.isPlaying
+                                        ? Icons.pause
+                                        : Icons.play_arrow,
+                                size: 40,
+                              ),
+                              onPressed: () {
+                                if (isControlHided) {
+                                  onScreenTap();
+                                  return;
+                                }
+                                videoControlTimer.cancel();
+                                if (isVideoEnded) {
+                                  videoPlayerController
+                                      .seekTo(Duration())
+                                      .whenComplete(() {
+                                    setState(() {
+                                      isVideoEnded = false;
+                                    });
                                   });
-                                });
-                              });
-                            },
-                            value: playedRatio,
+                                }
+                                if (videoPlayerController.value.isPlaying) {
+                                  videoPlayerController.pause();
+                                } else {
+                                  videoPlayerController.play();
+                                  videoControlTimer =
+                                      Timer(Duration(seconds: 2), () {
+                                    setState(() {
+                                      if (videoPlayerController.value.isPlaying)
+                                        isControlHided = true;
+                                    });
+                                  });
+                                }
+                              },
+                            ),
                           ),
                         ),
-                      ),
+                        AnimatedOpacity(
+                          opacity: !isControlHided ? 1.0 : 0.0,
+                          duration: Duration(milliseconds: 500),
+                          child: Container(
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 20),
+                            child: Align(
+                              alignment: Alignment.bottomLeft,
+                              child: Text(
+                                "${videoPlayerController.value.position.inHours > 0 ? "${videoPlayerController.value.position.inHours}:" : ""}${videoPlayerController.value.position.inHours > 0 ? (videoPlayerController.value.position.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.position.inMinutes}:${(videoPlayerController.value.position.inSeconds % 60).toString().padLeft(2, '0')} / ${videoPlayerController.value.duration.inHours > 0 ? "${videoPlayerController.value.duration.inHours}:" : ""}${videoPlayerController.value.duration.inHours > 0 ? (videoPlayerController.value.duration.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.duration.inMinutes}:${(videoPlayerController.value.duration.inSeconds % 60).toString().padLeft(2, '0')}",
+                              ),
+                            ),
+                          ),
+                        ),
+                        AnimatedOpacity(
+                          opacity: !isControlHided ? 1.0 : 0.0,
+                          duration: Duration(milliseconds: 500),
+                          child: Align(
+                            alignment: Alignment.bottomRight,
+                            child: IconButton(
+                              icon: Icon(isFullScreen
+                                  ? Icons.fullscreen_exit
+                                  : Icons.fullscreen),
+                              onPressed: () {
+                                if (isControlHided) {
+                                  onScreenTap();
+                                  return;
+                                }
+                                if (isFullScreen) {
+                                  exitFullScreen();
+                                } else {
+                                  enterFullScreen();
+                                }
+                                setState(() {
+                                  isFullScreen = !isFullScreen;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        AnimatedOpacity(
+                          opacity: !isControlHided ? 1.0 : 0.0,
+                          duration: Duration(milliseconds: 500),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              height: 20,
+                              child: SliderTheme(
+                                data: SliderThemeData(
+                                  overlayShape:
+                                      RoundSliderOverlayShape(overlayRadius: 0),
+                                  trackShape:
+                                      CustomRoundedRectSliderTrackShape(),
+                                ),
+                                child: Slider(
+                                  onChanged: (double value) {
+                                    if (isControlHided) {
+                                      onScreenTap();
+                                      return;
+                                    }
+                                    Duration seekDuration = Duration(
+                                        seconds: (value *
+                                                videoPlayerController
+                                                    .value.duration.inSeconds)
+                                            .round());
+                                    videoPlayerController
+                                        .seekTo(seekDuration)
+                                        .whenComplete(() {
+                                      setState(() {
+                                        playedRatio = value;
+                                        isVideoEnded = false;
+                                      });
+                                      videoPlayerController.play();
+                                      videoControlTimer =
+                                          Timer(Duration(seconds: 2), () {
+                                        setState(() {
+                                          if (videoPlayerController.value
+                                              .isPlaying) isControlHided = true;
+                                        });
+                                      });
+                                    });
+                                  },
+                                  value: playedRatio,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ]),
                     ),
                   ),
-                ]),
-              ),
-            ),
+                );
+              } else {
+                // If the VideoPlayerController is still initializing, show a
+                // loading spinner.
+                return Container(
+                    height: 220,
+                    child: Center(child: CircularProgressIndicator()));
+              }
+            },
           );
-        } else {
-          // If the VideoPlayerController is still initializing, show a
-          // loading spinner.
-          return Container(
-              height: 220, child: Center(child: CircularProgressIndicator()));
-        }
-      },
-    );
   }
 
   @override
@@ -460,22 +482,36 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           if (lastLessonModel == null) return;
           courseDetail.section.forEach((section) {
             section.lesson.forEach((lesson) {
-              initVideoPlayer(
-                  lastLessonModel.payload.videoUrl,
-                  Duration(
-                      seconds: lastLessonModel.payload.currentTime.round()));
+              String id = YoutubePlayer.convertUrlToId(
+                  lastLessonModel.payload.videoUrl);
+
+              if (id != null) {
+                setState(() {
+                  youtubePlayerController =
+                      YoutubePlayerController(initialVideoId: id);
+                  videoId = id;
+                });
+                youtubeLastWatchedPosition = Duration(
+                    seconds: lastLessonModel.payload.currentTime.round());
+              } else {
+                initVideoPlayer(
+                    lastLessonModel.payload.videoUrl,
+                    Duration(
+                        seconds: lastLessonModel.payload.currentTime.round()));
+              }
               if (lastLessonModel.payload.lessonId == lesson.id) {
                 fetchExercisesInLesson(lesson.id).then((value) {
                   setState(() {
-                    currentLessonId = lesson.id;
                     exercisesInLessonModel = value;
                     section.isExpanded = true;
+                    currentLessonId = lesson.id;
                   });
                 });
               }
             });
           });
         });
+
         checkOwnCourse(courseId).then((checkOwnCourseModel) {
           setState(() {
             isRegistered = checkOwnCourseModel.payload.isUserOwnCourse;
@@ -494,7 +530,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return WillPopScope(
       onWillPop: onPop,
       child: Scaffold(
-        floatingActionButton: isFullScreen
+        floatingActionButton: isFullScreen || isYoutubeFullScreen
             ? null
             : FloatingActionButton(
                 mini: true,
@@ -540,430 +576,471 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             ? Center(
                 child: CircularProgressIndicator(),
               )
-            : isFullScreen
-                ? getVideoPlayerWidget()
-                : Column(
-                    children: [
-                      getVideoPlayerWidget(),
-                      !isFullScreen
-                          ? Expanded(
-                              child: ListView(
-                                padding: EdgeInsets.only(
-                                    left: 20, top: 0, right: 20, bottom: 100),
+            : Column(
+                children: [
+                  videoId != null
+                      ? Expanded(
+                          child: Container(
+                            margin: EdgeInsets.only(bottom: 20),
+                            child: YoutubePlayerBuilder(
+                              player: YoutubePlayer(
+                                controller: youtubePlayerController,
+                                showVideoProgressIndicator: true,
+                                onReady: () {
+                                  youtubePlayerController.addListener(() {
+                                    updateCurrentVideoPosition(
+                                        youtubePlayerController
+                                            .value.position.inSeconds
+                                            .toDouble());
+                                  });
+                                  youtubePlayerController
+                                      .seekTo(youtubeLastWatchedPosition);
+                                },
+                              ),
+                              builder: (context, player) {
+                                return player;
+                              },
+                              onExitFullScreen: () {
+                                ScreenMode screenMode = Provider.of<ScreenMode>(
+                                    context,
+                                    listen: false);
+                                screenMode.setFullScreen(false);
+                                setState(() {
+                                  isYoutubeFullScreen = false;
+                                });
+                              },
+                              onEnterFullScreen: () {
+                                ScreenMode screenMode = Provider.of<ScreenMode>(
+                                    context,
+                                    listen: false);
+                                screenMode.setFullScreen(true);
+                                setState(() {
+                                  isYoutubeFullScreen = true;
+                                });
+                              },
+                            ),
+                          ),
+                        )
+                      : Expanded(child: getVideoPlayerWidget()),
+                  isYoutubeFullScreen || isFullScreen
+                      ? SizedBox()
+                      : Expanded(
+                          child: ListView(
+                            padding: EdgeInsets.only(
+                                left: 20, top: 0, right: 20, bottom: 100),
+                            children: [
+                              Text(
+                                courseDetail.title,
+                                style: Theme.of(context).textTheme.headline5,
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Chip(
+                                    avatar: CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                          courseDetail.instructor.avatar),
+                                    ),
+                                    label: Text(courseDetail.instructor.name)),
+                              ),
+                              Row(
                                 children: [
                                   Text(
-                                    courseDetail.title,
-                                    style:
-                                        Theme.of(context).textTheme.headline5,
+                                    "${new DateFormat.yMMMMd().format(courseDetail.createdAt.toLocal())} · ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inHours}h ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inMinutes}m",
+                                    style: Theme.of(context).textTheme.caption,
                                   ),
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Chip(
-                                        avatar: CircleAvatar(
-                                          backgroundImage: NetworkImage(
-                                              courseDetail.instructor.avatar),
-                                        ),
-                                        label:
-                                            Text(courseDetail.instructor.name)),
+                                  SizedBox(
+                                    width: 5,
                                   ),
-                                  Row(
+                                  RatingBar.builder(
+                                    initialRating: courseDetail.formalityPoint,
+                                    minRating: 1,
+                                    direction: Axis.horizontal,
+                                    allowHalfRating: true,
+                                    itemCount: 5,
+                                    itemSize: 12,
+                                    itemPadding:
+                                        EdgeInsets.symmetric(horizontal: 1),
+                                    itemBuilder: (context, _) => Icon(
+                                      Icons.star,
+                                      color: Colors.amber,
+                                    ),
+                                    ignoreGestures: true,
+                                    onRatingUpdate: (double value) {},
+                                  ),
+                                  Text(
+                                    " (${courseDetail.ratedNumber})",
+                                    style: Theme.of(context).textTheme.caption,
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
-                                        "${new DateFormat.yMMMMd().format(courseDetail.createdAt.toLocal())} · ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inHours}h ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inMinutes}m",
-                                        style:
-                                            Theme.of(context).textTheme.caption,
+                                      IconButton(
+                                        icon: Icon(
+                                          isLiked
+                                              ? Icons.favorite
+                                              : Icons.favorite_outline,
+                                          color: Colors.redAccent,
+                                        ),
+                                        onPressed: () {
+                                          likeCourse(courseId).then((value) {
+                                            setState(() {
+                                              isLiked = value;
+                                            });
+                                            Course course = Course(
+                                              id: courseDetail.id,
+                                              title: courseDetail.title,
+                                              price: courseDetail.price,
+                                              imageUrl: courseDetail.imageUrl,
+                                              instructorId:
+                                                  courseDetail.instructorId,
+                                              instructorUserName:
+                                                  courseDetail.instructor.name,
+                                              contentPoint:
+                                                  courseDetail.contentPoint,
+                                              formalityPoint:
+                                                  courseDetail.formalityPoint,
+                                              presentationPoint: courseDetail
+                                                  .presentationPoint,
+                                            );
+                                            favoriteCourseModel.add(course);
+                                          });
+                                        },
+                                      ),
+                                      Text("Like")
+                                    ],
+                                  ),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.share,
+                                          color: Colors.blue,
+                                        ),
+                                        onPressed: () {},
+                                      ),
+                                      Text("Share")
+                                    ],
+                                  ),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.download_rounded),
+                                        onPressed: () {},
+                                      ),
+                                      Text("Download")
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Card(
+                                margin: EdgeInsets.all(0),
+                                child: Container(
+                                  padding: EdgeInsets.all(20),
+                                  child: Text(
+                                    courseDetail.subtitle,
+                                    style:
+                                        Theme.of(context).textTheme.subtitle1,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Card(
+                                margin: EdgeInsets.all(0),
+                                child: Container(
+                                  padding: EdgeInsets.all(20),
+                                  child: Column(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Text(
+                                          "Achievements",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headline6,
+                                        ),
                                       ),
                                       SizedBox(
-                                        width: 5,
+                                        height: 5,
                                       ),
-                                      RatingBar.builder(
-                                        initialRating:
-                                            courseDetail.formalityPoint,
-                                        minRating: 1,
-                                        direction: Axis.horizontal,
-                                        allowHalfRating: true,
-                                        itemCount: 5,
-                                        itemSize: 12,
-                                        itemPadding:
-                                            EdgeInsets.symmetric(horizontal: 1),
-                                        itemBuilder: (context, _) => Icon(
-                                          Icons.star,
-                                          color: Colors.amber,
+                                      Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Container(
+                                          padding: EdgeInsets.only(left: 10),
+                                          child: Column(
+                                            children: courseDetail.learnWhat
+                                                .map((skill) {
+                                              return Text("- $skill");
+                                            }).toList(),
+                                          ),
                                         ),
-                                        ignoreGestures: true,
-                                        onRatingUpdate: (double value) {},
                                       ),
-                                      Text(
-                                        " (${courseDetail.ratedNumber})",
-                                        style:
-                                            Theme.of(context).textTheme.caption,
-                                      )
                                     ],
                                   ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
+                                ),
+                              ),
+                              Card(
+                                margin: EdgeInsets.all(0),
+                                child: Container(
+                                  padding: EdgeInsets.all(20),
+                                  child: Column(
                                     children: [
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(
-                                              isLiked
-                                                  ? Icons.favorite
-                                                  : Icons.favorite_outline,
-                                              color: Colors.redAccent,
-                                            ),
-                                            onPressed: () {
-                                              likeCourse(courseId)
-                                                  .then((value) {
-                                                setState(() {
-                                                  isLiked = value;
-                                                });
-                                                Course course = Course(
-                                                  id: courseDetail.id,
-                                                  title: courseDetail.title,
-                                                  price: courseDetail.price,
-                                                  imageUrl:
-                                                      courseDetail.imageUrl,
-                                                  instructorId:
-                                                      courseDetail.instructorId,
-                                                  instructorUserName:
-                                                      courseDetail
-                                                          .instructor.name,
-                                                  contentPoint:
-                                                      courseDetail.contentPoint,
-                                                  formalityPoint: courseDetail
-                                                      .formalityPoint,
-                                                  presentationPoint:
-                                                      courseDetail
-                                                          .presentationPoint,
-                                                );
-                                                favoriteCourseModel.add(course);
-                                              });
-                                            },
-                                          ),
-                                          Text("Like")
-                                        ],
+                                      Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Text(
+                                          "Requirements",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headline6,
+                                        ),
                                       ),
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(
-                                              Icons.share,
-                                              color: Colors.blue,
-                                            ),
-                                            onPressed: () {},
-                                          ),
-                                          Text("Share")
-                                        ],
+                                      SizedBox(
+                                        height: 5,
                                       ),
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.download_rounded),
-                                            onPressed: () {},
+                                      Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Container(
+                                          padding: EdgeInsets.only(left: 10),
+                                          child: Column(
+                                            children: courseDetail.requirement
+                                                .map((skill) {
+                                              return Text("- $skill");
+                                            }).toList(),
                                           ),
-                                          Text("Download")
-                                        ],
+                                        ),
                                       ),
                                     ],
                                   ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Card(
-                                    margin: EdgeInsets.all(0),
-                                    child: Container(
-                                      padding: EdgeInsets.all(20),
-                                      child: Text(
-                                        courseDetail.subtitle,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .subtitle1,
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Card(
+                                margin: EdgeInsets.all(0),
+                                child: Container(
+                                  padding: EdgeInsets.all(20),
+                                  child: Column(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Text(
+                                          "Descriptions",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headline6,
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Card(
-                                    margin: EdgeInsets.all(0),
-                                    child: Container(
-                                      padding: EdgeInsets.all(20),
-                                      child: Column(
-                                        children: [
-                                          Align(
-                                            alignment: Alignment.topLeft,
-                                            child: Text(
-                                              "Achievements",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .headline6,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Align(
-                                            alignment: Alignment.topLeft,
-                                            child: Container(
-                                              padding:
-                                                  EdgeInsets.only(left: 10),
-                                              child: Column(
-                                                children: courseDetail.learnWhat
-                                                    .map((skill) {
-                                                  return Text("- $skill");
-                                                }).toList(),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                      Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Text(
+                                          courseDetail.description,
+                                          maxLines: descriptionMaxLines,
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                  Card(
-                                    margin: EdgeInsets.all(0),
-                                    child: Container(
-                                      padding: EdgeInsets.all(20),
-                                      child: Column(
-                                        children: [
-                                          Align(
-                                            alignment: Alignment.topLeft,
-                                            child: Text(
-                                              "Requirements",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .headline6,
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Align(
-                                            alignment: Alignment.topLeft,
-                                            child: Container(
-                                              padding:
-                                                  EdgeInsets.only(left: 10),
-                                              child: Column(
-                                                children: courseDetail
-                                                    .requirement
-                                                    .map((skill) {
-                                                  return Text("- $skill");
-                                                }).toList(),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Card(
-                                    margin: EdgeInsets.all(0),
-                                    child: Container(
-                                      padding: EdgeInsets.all(20),
-                                      child: Column(
-                                        children: [
-                                          Align(
-                                            alignment: Alignment.topLeft,
-                                            child: Text(
-                                              "Descriptions",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .headline6,
-                                            ),
-                                          ),
-                                          Align(
-                                            alignment: Alignment.topLeft,
-                                            child: Text(
-                                              courseDetail.description,
-                                              maxLines: descriptionMaxLines,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  IconButton(
-                                      icon: Icon(descriptionMaxLines != null
-                                          ? Icons.expand_more
-                                          : Icons.expand_less),
-                                      onPressed: () {
-                                        if (descriptionMaxLines != null) {
-                                          setState(() {
-                                            descriptionMaxLines = null;
-                                          });
-                                        } else {
-                                          setState(() {
-                                            descriptionMaxLines = 2;
-                                          });
-                                        }
-                                      }),
-                                  ExpansionPanelList(
-                                    expansionCallback:
-                                        (int index, bool isExpanded) {
+                                ),
+                              ),
+                              IconButton(
+                                  icon: Icon(descriptionMaxLines != null
+                                      ? Icons.expand_more
+                                      : Icons.expand_less),
+                                  onPressed: () {
+                                    if (descriptionMaxLines != null) {
                                       setState(() {
-                                        courseDetail.section[index].isExpanded =
-                                            !isExpanded;
+                                        descriptionMaxLines = null;
                                       });
-                                    },
-                                    children: courseDetail.section
-                                        .map<ExpansionPanel>((Section section) {
-                                      return ExpansionPanel(
-                                          headerBuilder: (BuildContext context,
-                                              bool isExpanded) {
-                                            Duration sectionDuration = Duration(
-                                                seconds:
-                                                    (section.sumHours * 3600)
-                                                        .round());
-                                            return ListTile(
-                                              leading: Container(
-                                                height: 40,
-                                                width: 40,
-                                                child: Center(
-                                                    child: Text(
-                                                        "${section.numberOrder}")),
-                                              ),
-                                              title: Text(section.name),
-                                              subtitle: Text(
-                                                  "${sectionDuration.inHours > 0 ? "${sectionDuration.inHours}:" : ""}${sectionDuration.inHours > 0 ? (sectionDuration.inMinutes % 60).toString().padLeft(2, '0') : sectionDuration.inMinutes}:${(sectionDuration.inSeconds % 60).toString().padLeft(2, '0')}"),
-                                            );
-                                          },
-                                          body: Container(
-                                            width: double.infinity,
-                                            child: Column(
-                                              children:
-                                                  section.lesson.map((lesson) {
-                                                Duration lessonDuration =
-                                                    Duration(
-                                                        seconds: (lesson.hours *
-                                                                3600)
-                                                            .round());
-                                                return Column(
-                                                  children: [
-                                                    ListTile(
-                                                      dense: true,
-                                                      leading:
-                                                          currentLessonId ==
-                                                                  lesson.id
-                                                              ? Icon(
-                                                                  Icons
-                                                                      .play_circle_fill,
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .accentColor,
-                                                                )
-                                                              : Icon(
-                                                                  Icons.circle,
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .backgroundColor,
-                                                                ),
-                                                      title: InkWell(
-                                                        child:
-                                                            Text(lesson.name),
-                                                        onTap: isRegistered
-                                                            ? () {
-                                                                print(
-                                                                    lesson.id);
-                                                                getVideoInfo(
-                                                                        courseId,
-                                                                        lesson
-                                                                            .id)
-                                                                    .then(
-                                                                        (videoProgressModel) {
-                                                                  if (videoProgressModel ==
-                                                                      null) {
-                                                                    return;
-                                                                  }
-
-                                                                  initVideoPlayer(
+                                    } else {
+                                      setState(() {
+                                        descriptionMaxLines = 2;
+                                      });
+                                    }
+                                  }),
+                              ExpansionPanelList(
+                                expansionCallback:
+                                    (int index, bool isExpanded) {
+                                  setState(() {
+                                    courseDetail.section[index].isExpanded =
+                                        !isExpanded;
+                                  });
+                                },
+                                children: courseDetail.section
+                                    .map<ExpansionPanel>((Section section) {
+                                  return ExpansionPanel(
+                                      headerBuilder: (BuildContext context,
+                                          bool isExpanded) {
+                                        Duration sectionDuration = Duration(
+                                            seconds: (section.sumHours * 3600)
+                                                .round());
+                                        return ListTile(
+                                          leading: Container(
+                                            height: 40,
+                                            width: 40,
+                                            child: Center(
+                                                child: Text(
+                                                    "${section.numberOrder}")),
+                                          ),
+                                          title: Text(section.name),
+                                          subtitle: Text(
+                                              "${sectionDuration.inHours > 0 ? "${sectionDuration.inHours}:" : ""}${sectionDuration.inHours > 0 ? (sectionDuration.inMinutes % 60).toString().padLeft(2, '0') : sectionDuration.inMinutes}:${(sectionDuration.inSeconds % 60).toString().padLeft(2, '0')}"),
+                                        );
+                                      },
+                                      body: Container(
+                                        width: double.infinity,
+                                        child: Column(
+                                          children:
+                                              section.lesson.map((lesson) {
+                                            Duration lessonDuration = Duration(
+                                                seconds: (lesson.hours * 3600)
+                                                    .round());
+                                            return Column(
+                                              children: [
+                                                ListTile(
+                                                  dense: true,
+                                                  leading: currentLessonId ==
+                                                          lesson.id
+                                                      ? Icon(
+                                                          Icons
+                                                              .play_circle_fill,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .accentColor,
+                                                        )
+                                                      : Icon(
+                                                          Icons.circle,
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .backgroundColor,
+                                                        ),
+                                                  title: InkWell(
+                                                    child: Text(lesson.name),
+                                                    onTap: isRegistered
+                                                        ? () {
+                                                            print(lesson.id);
+                                                            getVideoInfo(
+                                                                    courseId,
+                                                                    lesson.id)
+                                                                .then(
+                                                                    (videoProgressModel) {
+                                                              if (videoProgressModel ==
+                                                                  null) {
+                                                                return;
+                                                              }
+                                                              String id = YoutubePlayer
+                                                                  .convertUrlToId(
                                                                       videoProgressModel
                                                                           .payload
-                                                                          .videoUrl,
-                                                                      Duration());
-                                                                  fetchExercisesInLesson(
-                                                                          lesson
-                                                                              .id)
-                                                                      .then(
-                                                                          (value) {
-                                                                    setState(
-                                                                        () {
-                                                                      exercisesInLessonModel =
-                                                                          value;
-                                                                      currentLessonId =
-                                                                          lesson
-                                                                              .id;
-                                                                    });
-                                                                  });
+                                                                          .videoUrl);
+
+                                                              if (id != null) {
+                                                                youtubePlayerController
+                                                                    .load(id);
+                                                              } else
+                                                                initVideoPlayer(
+                                                                    videoProgressModel
+                                                                        .payload
+                                                                        .videoUrl,
+                                                                    Duration(
+                                                                        seconds: videoProgressModel
+                                                                            .payload
+                                                                            .currentTime
+                                                                            .round()));
+                                                              fetchExercisesInLesson(
+                                                                      lesson.id)
+                                                                  .then(
+                                                                      (value) {
+                                                                setState(() {
+                                                                  exercisesInLessonModel =
+                                                                      value;
+                                                                  currentLessonId =
+                                                                      lesson.id;
                                                                 });
-                                                              }
-                                                            : null,
-                                                      ),
-                                                      trailing: Text(
-                                                          "${lessonDuration.inHours > 0 ? "${lessonDuration.inHours}:" : ""}${lessonDuration.inHours > 0 ? (lessonDuration.inMinutes % 60).toString().padLeft(2, '0') : lessonDuration.inMinutes}:${(lessonDuration.inSeconds % 60).toString().padLeft(2, '0')}"),
-                                                    ),
-                                                  ],
+                                                              });
+                                                            });
+                                                          }
+                                                        : null,
+                                                  ),
+                                                  trailing: Text(
+                                                      "${lessonDuration.inHours > 0 ? "${lessonDuration.inHours}:" : ""}${lessonDuration.inHours > 0 ? (lessonDuration.inMinutes % 60).toString().padLeft(2, '0') : lessonDuration.inMinutes}:${(lessonDuration.inSeconds % 60).toString().padLeft(2, '0')}"),
+                                                ),
+                                              ],
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                      isExpanded: section.isExpanded);
+                                }).toList(),
+                              ),
+                              exercisesInLessonModel == null ||
+                                      exercisesInLessonModel
+                                              .payload.exercises.length ==
+                                          0
+                                  ? SizedBox()
+                                  : ExpansionPanelList(
+                                      expansionCallback:
+                                          (int index, bool isExpanded) {
+                                        setState(() {
+                                          isExercisesExpanded =
+                                              !isExercisesExpanded;
+                                        });
+                                      },
+                                      children: [
+                                        ExpansionPanel(
+                                            headerBuilder:
+                                                (BuildContext context,
+                                                    bool isExpanded) {
+                                              return ListTile(
+                                                title: Text("Exercise"),
+                                              );
+                                            },
+                                            body: Column(
+                                              children: exercisesInLessonModel
+                                                  .payload.exercises
+                                                  .map((exercise) {
+                                                return ListTile(
+                                                  dense: true,
+                                                  leading: Icon(
+                                                      Icons.article_outlined),
+                                                  title: Text(exercise.title),
                                                 );
                                               }).toList(),
                                             ),
-                                          ),
-                                          isExpanded: section.isExpanded);
-                                    }).toList(),
-                                  ),
-                                  exercisesInLessonModel == null ||
-                                          exercisesInLessonModel
-                                                  .payload.exercises.length ==
-                                              0
-                                      ? SizedBox()
-                                      : ExpansionPanelList(
-                                          expansionCallback:
-                                              (int index, bool isExpanded) {
-                                            setState(() {
-                                              isExercisesExpanded =
-                                                  !isExercisesExpanded;
-                                            });
-                                          },
-                                          children: [
-                                            ExpansionPanel(
-                                                headerBuilder:
-                                                    (BuildContext context,
-                                                        bool isExpanded) {
-                                                  return ListTile(
-                                                    title: Text("Exercise"),
-                                                  );
-                                                },
-                                                body: Column(
-                                                  children:
-                                                      exercisesInLessonModel
-                                                          .payload.exercises
-                                                          .map((exercise) {
-                                                    return ListTile(
-                                                      dense: true,
-                                                      leading: Icon(Icons
-                                                          .article_outlined),
-                                                      title:
-                                                          Text(exercise.title),
-                                                    );
-                                                  }).toList(),
-                                                ),
-                                                isExpanded: isExercisesExpanded)
-                                          ],
-                                        )
-                                ],
+                                            isExpanded: isExercisesExpanded)
+                                      ],
+                                    ),
+                              SizedBox(
+                                height: 20,
                               ),
-                            )
-                          : SizedBox()
-                    ],
-                  ),
+                              Text(
+                                "The same topic courses",
+                                style: Theme.of(context).textTheme.headline5,
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              HorizontalCoursesList(CourseModel(
+                                  courses: courseDetail.coursesLikeCategory))
+                            ],
+                          ),
+                        ),
+                ],
+              ),
       ),
     );
   }

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:intl/intl.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list_item.dart';

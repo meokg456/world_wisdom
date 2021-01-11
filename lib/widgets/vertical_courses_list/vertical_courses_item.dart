@@ -42,7 +42,8 @@ class VerticalCoursesListItem extends StatelessWidget {
           SizedBox(
             height: 2,
           ),
-          Text("${new DateFormat.yMMMMd().format(course.createdAt.toLocal())}",
+          Text(
+              "${course.createdAt == null ? null : DateFormat.yMMMMd().format(course.createdAt.toLocal())}",
               style: Theme.of(context).textTheme.caption),
           SizedBox(
             height: 2,

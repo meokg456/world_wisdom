@@ -39,6 +39,7 @@ dependencies:
   firebase_auth: ^0.18.4+1
   video_player:
   flick_video_player: ^0.1.1
+  youtube_player_flutter: ^7.0.0+7
 dev_dependencies:
   flutter_test:
     sdk: flutter
