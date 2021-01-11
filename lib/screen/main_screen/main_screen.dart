@@ -9,7 +9,7 @@ import 'package:world_wisdom/screen/main_screen/download_tab/download_tab.dart';
 import 'package:world_wisdom/screen/main_screen/home_tab/home_tab.dart';
 import 'package:world_wisdom/screen/main_screen/search_tab/search_tab.dart';
 import 'package:provider/provider.dart';
-import 'package:world_wisdom/screen_mode/screen_mode.dart';
+import 'package:world_wisdom/screen/screen_mode/app_mode.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -54,7 +54,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    bool isFullScreen = context.select((ScreenMode mode) => mode.isFullScreen);
+    bool isFullScreen =
+        context.select((AppMode mode) => mode.isWatchingExpandedVideo);
     return WillPopScope(
       onWillPop: onPop,
       child: Scaffold(
@@ -109,8 +110,6 @@ class _MainScreenState extends State<MainScreen> {
                 showUnselectedLabels: true,
                 onTap: selectedTab,
                 currentIndex: _selectedIndex,
-                unselectedItemColor: Colors.white,
-                selectedItemColor: Color(0xFF0081B9),
                 type: BottomNavigationBarType.fixed,
               ),
       ),

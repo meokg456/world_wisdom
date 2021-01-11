@@ -19,7 +19,7 @@ import 'package:world_wisdom/model/lesson_model/last_watched_lesson_model.dart';
 import 'package:world_wisdom/model/section_model/section.dart';
 import 'package:world_wisdom/model/video_progress_model/video_progress_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
-import 'package:world_wisdom/screen_mode/screen_mode.dart';
+import 'package:world_wisdom/screen/screen_mode/app_mode.dart';
 import 'package:world_wisdom/widgets/custom_rounded_rectangle_track_shape/custom_rounded_rectangle_track_shape.dart';
 import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -241,7 +241,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void enterFullScreen() {
-    ScreenMode screenMode = Provider.of<ScreenMode>(context, listen: false);
+    AppMode screenMode = Provider.of<AppMode>(context, listen: false);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -250,7 +250,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void exitFullScreen() {
-    ScreenMode screenMode = Provider.of<ScreenMode>(context, listen: false);
+    AppMode screenMode = Provider.of<AppMode>(context, listen: false);
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -263,7 +263,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       setState(() {
         isFullScreen = false;
       });
-      ScreenMode screenMode = Provider.of<ScreenMode>(context, listen: false);
+      AppMode screenMode = Provider.of<AppMode>(context, listen: false);
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,
@@ -601,7 +601,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 return player;
                               },
                               onExitFullScreen: () {
-                                ScreenMode screenMode = Provider.of<ScreenMode>(
+                                AppMode screenMode = Provider.of<AppMode>(
                                     context,
                                     listen: false);
                                 screenMode.setFullScreen(false);
@@ -610,7 +610,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 });
                               },
                               onEnterFullScreen: () {
-                                ScreenMode screenMode = Provider.of<ScreenMode>(
+                                AppMode screenMode = Provider.of<AppMode>(
                                     context,
                                     listen: false);
                                 screenMode.setFullScreen(true);

@@ -13,7 +13,8 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
         message: json["message"],
-        userInfo: User.fromJson(json["userInfo"]),
+        userInfo: User.fromJson(
+            json["userInfo"] != null ? json["userInfo"] : json["payload"]),
         token: json["token"],
       );
 

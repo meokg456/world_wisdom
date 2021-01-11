@@ -39,7 +39,8 @@ class HorizontalCoursesListItem extends StatelessWidget {
                   ),
                   Text(
                     course.title,
-                    overflow: TextOverflow.clip,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.subtitle2,
                   ),
                   SizedBox(

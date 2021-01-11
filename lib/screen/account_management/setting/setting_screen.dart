@@ -6,6 +6,7 @@ import 'package:world_wisdom/model/authentication_model/authentication_model.dar
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user_type.dart';
 import 'package:world_wisdom/screen/key/key.dart';
+import 'package:world_wisdom/screen/screen_mode/app_mode.dart';
 
 class SettingScreen extends StatefulWidget {
   @override
@@ -13,9 +14,11 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
+  AppMode appMode;
   @override
   Widget build(BuildContext context) {
     User user = context.select((AuthenticationModel model) => model.user);
+    appMode = context.select((AppMode appMode) => appMode);
     return Scaffold(
       appBar: AppBar(title: Text("Setting")),
       body: Container(
@@ -34,29 +37,14 @@ class _SettingScreenState extends State<SettingScreen> {
                     },
                   )
                 : SizedBox(),
+            Divider(),
             ListTile(
-              title: Text(
-                "Captions",
-                style: Theme.of(context).textTheme.headline6,
-              ),
-              dense: true,
-            ),
-            ListTile(
-              title: Text(
-                "Notifications",
-                style: Theme.of(context).textTheme.headline6,
-              ),
-              dense: true,
-            ),
-            ListTile(
-              title: Text(
-                "App version",
-                style: Theme.of(context).textTheme.headline6,
-              ),
-              dense: true,
-              subtitle: Text(
-                "2.38.0",
-                style: Theme.of(context).textTheme.subtitle2,
+              title: Text("Dark mode"),
+              trailing: Switch(
+                value: appMode.isDark,
+                onChanged: (bool value) {
+                  appMode.setDarkMode(value);
+                },
               ),
             ),
             Divider(),

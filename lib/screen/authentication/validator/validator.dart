@@ -13,6 +13,10 @@ class Validator {
     return password.isEmpty ? "Password cannot be empty" : null;
   }
 
+  static String validateUrl(String url) {
+    return Uri.parse(url).isAbsolute ? null : "Invalid url";
+  }
+
   static String validatePhone(String phoneNumber) {
     return phoneNumber.isEmpty
         ? "Phone number cannot be empty"

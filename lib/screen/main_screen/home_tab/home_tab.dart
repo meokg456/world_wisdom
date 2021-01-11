@@ -197,7 +197,6 @@ class _HomeTabState extends State<HomeTab> {
                     IconButton(
                         icon: Icon(
                           Icons.apps_outlined,
-                          color: Colors.white,
                         ),
                         onPressed: () {
                           BottomNavigationBar bottomNavigationBar =
@@ -213,7 +212,6 @@ class _HomeTabState extends State<HomeTab> {
                     IconButton(
                         icon: Icon(
                           Icons.search,
-                          color: Colors.white,
                         ),
                         onPressed: () {
                           BottomNavigationBar bottomNavigationBar =
