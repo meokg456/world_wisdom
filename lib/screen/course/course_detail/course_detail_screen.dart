@@ -29,11 +29,11 @@ class CourseDetailScreen extends StatefulWidget {
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
   VideoPlayerController videoPlayerController;
+  AuthenticationModel authenticationModel;
   bool isLoading = true;
   CourseDetail courseDetail;
   int descriptionMaxLines = 2;
-  int currentLessonIndex = -1;
-  int currentSectionIndex = -1;
+  String currentLessonId;
   bool isRegistered = false;
   bool isExercisesExpanded = false;
   bool isLiked = false;
@@ -43,11 +43,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   ExercisesInLessonModel exercisesInLessonModel;
   Future<void> initialize;
   double playedRatio = 0.0;
-  Timer timer;
+  Timer videoControlTimer;
 
-  Future<CourseDetail> fetchCourseData(String courseId, String userId) async {
-    var response = await http
-        .get("${Constants.apiUrl}/course/get-course-detail/$courseId/$userId");
+  Future<CourseDetail> fetchCourseData(String courseId) async {
+    var response = await http.get(
+        "${Constants.apiUrl}/course/get-course-detail/$courseId/${authenticationModel.user.id}");
     print(response.body);
     if (response.statusCode == 200) {
       return CourseDetailModel.fromJson(jsonDecode(response.body)).payload;
@@ -55,10 +55,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return null;
   }
 
-  Future<bool> getLikeStatus(String token, String courseId) async {
+  Future<bool> getLikeStatus(String courseId) async {
     var response = await http.get(
         "${Constants.apiUrl}/user/get-course-like-status/$courseId",
-        headers: {"Authorization": "Bearer $token"});
+        headers: {"Authorization": "Bearer ${authenticationModel.token}"});
     print(response.body);
     if (response.statusCode == 200) {
       Map json = jsonDecode(response.body);
@@ -67,11 +67,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return false;
   }
 
-  Future<bool> likeCourse(String token, String courseId) async {
+  Future<bool> likeCourse(String courseId) async {
     var response = await http.post("${Constants.apiUrl}/user/like-course",
         body: jsonEncode({"courseId": courseId}),
         headers: {
-          "Authorization": "Bearer $token",
+          "Authorization": "Bearer ${authenticationModel.token}",
           "Content-Type": "application/json"
         });
     print(response.body);
@@ -82,13 +82,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return false;
   }
 
-  Future<ExercisesInLessonModel> fetchExercisesInLesson(
-      String token, String lessonId) async {
+  Future<ExercisesInLessonModel> fetchExercisesInLesson(String lessonId) async {
     var response = await http.post(
         "${Constants.apiUrl}/exercise/student/list-exercise-lesson",
         body: jsonEncode({"lessonId": lessonId}),
         headers: {
-          "Authorization": "Bearer $token",
+          "Authorization": "Bearer ${authenticationModel.token}",
           "Content-Type": "application/json"
         });
     print(response.body);
@@ -98,12 +97,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return null;
   }
 
-  Future<bool> getFreeCourse(String token, String courseId) async {
+  Future<bool> getFreeCourse(String courseId) async {
     var response = await http.post(
         "${Constants.apiUrl}/payment/get-free-courses",
         body: jsonEncode({"courseId": courseId}),
         headers: {
-          "Authorization": "Bearer $token",
+          "Authorization": "Bearer ${authenticationModel.token}",
           "Content-Type": "application/json"
         });
     print(response.body);
@@ -113,12 +112,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return false;
   }
 
-  Future<LastWatchedLessonModel> getLastWatchedLesson(
-      String token, String courseId) async {
+  Future<LastWatchedLessonModel> getLastWatchedLesson(String courseId) async {
     var response = await http.get(
         "${Constants.apiUrl}/course/last-watched-lesson/$courseId",
         headers: {
-          "Authorization": "Bearer $token",
+          "Authorization": "Bearer ${authenticationModel.token}",
           "Content-Type": "application/json"
         });
     print(response.body);
@@ -128,11 +126,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return null;
   }
 
-  Future<CheckOwnCourseModel> checkOwnCourse(
-      String token, String courseId) async {
+  Future<CheckOwnCourseModel> checkOwnCourse(String courseId) async {
     var response = await http.get(
         "${Constants.apiUrl}/user/check-own-course/$courseId",
-        headers: {"Authorization": "Bearer $token"});
+        headers: {"Authorization": "Bearer ${authenticationModel.token}"});
     print(response.body);
     if (response.statusCode == 200) {
       return CheckOwnCourseModel.fromJson(jsonDecode(response.body));
@@ -141,10 +138,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   Future<VideoProgressModel> getVideoInfo(
-      String token, String courseId, String lessonId) async {
+      String courseId, String lessonId) async {
     var response = await http.get(
         "${Constants.apiUrl}/lesson/video/$courseId/$lessonId",
-        headers: {"Authorization": "Bearer $token"});
+        headers: {"Authorization": "Bearer ${authenticationModel.token}"});
     print(response.body);
     if (response.statusCode == 200) {
       VideoProgressModel videoProgressModel =
@@ -156,7 +153,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
   @override
   void initState() {
-    timer = Timer(Duration(seconds: 2), () {
+    videoControlTimer = Timer(Duration(seconds: 2), () {
       setState(() {
         if (videoPlayerController.value.isPlaying) isControlHided = true;
       });
@@ -174,26 +171,56 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     super.dispose();
   }
 
-  void initVideoPlayer() {
-    setState(() {
-      videoPlayerController =
-          VideoPlayerController.network(courseDetail.promoVidUrl);
-      videoPlayerController.addListener(() {
-        if (videoPlayerController.value.position ==
-            videoPlayerController.value.duration) {
-          timer.cancel();
-          setState(() {
-            isControlHided = false;
-            isVideoEnded = true;
-          });
-        }
-        double ratio = videoPlayerController.value.position.inSeconds /
-            videoPlayerController.value.duration.inSeconds;
-        setState(() {
-          playedRatio = ratio;
+  void updateCurrentVideoPosition(double currentTime) async {
+    if (currentLessonId == null ||
+        videoPlayerController == null ||
+        videoPlayerController.value.duration == null) return;
+    var response = await http.put(
+        "${Constants.apiUrl}/lesson/update-current-time-learn-video",
+        body: jsonEncode(
+            {"lessonId": currentLessonId, "currentTime": currentTime}),
+        headers: {
+          "Authorization": "Bearer ${authenticationModel.token}",
+          "Content-Type": "application/json"
         });
+    print(response.body);
+  }
+
+  void updateVideoPlayer() {
+    if (videoPlayerController.value.position ==
+        videoPlayerController.value.duration) {
+      videoControlTimer.cancel();
+      setState(() {
+        isControlHided = false;
+        isVideoEnded = true;
       });
-      initialize = videoPlayerController.initialize();
+    }
+    double ratio = videoPlayerController.value.position.inSeconds /
+        videoPlayerController.value.duration.inSeconds;
+    updateCurrentVideoPosition(
+        videoPlayerController.value.position.inSeconds.toDouble());
+    setState(() {
+      playedRatio = ratio;
+    });
+  }
+
+  void initVideoPlayer(String videoUrl, Duration start) {
+    setState(() {
+      if (videoPlayerController != null) {
+        videoPlayerController.pause();
+      }
+
+      videoPlayerController = VideoPlayerController.network(videoUrl);
+      initialize = videoPlayerController.initialize().whenComplete(() {
+        if (videoPlayerController.value.duration != null) {
+          videoPlayerController.addListener(updateVideoPlayer);
+          videoPlayerController.seekTo(start);
+        }
+      });
+      isFullScreen = false;
+      isControlHided = false;
+      isVideoEnded = false;
+      playedRatio = 0.0;
     });
   }
 
@@ -232,12 +259,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void onScreenTap() {
-    timer.cancel();
+    videoControlTimer.cancel();
     if (videoPlayerController.value.isPlaying) {
       setState(() {
         isControlHided = !isControlHided;
       });
-      timer = Timer(Duration(seconds: 2), () {
+      videoControlTimer = Timer(Duration(seconds: 2), () {
         setState(() {
           if (videoPlayerController.value.isPlaying) isControlHided = true;
         });
@@ -249,7 +276,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return FutureBuilder(
       future: initialize,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            videoPlayerController.value.duration != null) {
           // If the VideoPlayerController has finished initialization, use
           // the data it provides to limit the aspect ratio of the VideoPlayer.
           return Container(
@@ -287,7 +315,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                             onScreenTap();
                             return;
                           }
-                          timer.cancel();
+                          videoControlTimer.cancel();
                           if (isVideoEnded) {
                             videoPlayerController
                                 .seekTo(Duration())
@@ -301,7 +329,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                             videoPlayerController.pause();
                           } else {
                             videoPlayerController.play();
-                            timer = Timer(Duration(seconds: 2), () {
+                            videoControlTimer = Timer(Duration(seconds: 2), () {
                               setState(() {
                                 if (videoPlayerController.value.isPlaying)
                                   isControlHided = true;
@@ -321,7 +349,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       child: Align(
                         alignment: Alignment.bottomLeft,
                         child: Text(
-                            "${videoPlayerController.value.position.inHours > 0 ? "${videoPlayerController.value.position.inHours}:" : ""}${videoPlayerController.value.position.inHours > 0 ? (videoPlayerController.value.position.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.position.inMinutes}:${(videoPlayerController.value.position.inSeconds % 60).toString().padLeft(2, '0')} / ${videoPlayerController.value.duration.inHours > 0 ? "${videoPlayerController.value.duration.inHours}:" : ""}${videoPlayerController.value.duration.inHours > 0 ? (videoPlayerController.value.duration.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.duration.inMinutes}:${(videoPlayerController.value.duration.inSeconds % 60).toString().padLeft(2, '0')}"),
+                          "${videoPlayerController.value.position.inHours > 0 ? "${videoPlayerController.value.position.inHours}:" : ""}${videoPlayerController.value.position.inHours > 0 ? (videoPlayerController.value.position.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.position.inMinutes}:${(videoPlayerController.value.position.inSeconds % 60).toString().padLeft(2, '0')} / ${videoPlayerController.value.duration.inHours > 0 ? "${videoPlayerController.value.duration.inHours}:" : ""}${videoPlayerController.value.duration.inHours > 0 ? (videoPlayerController.value.duration.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.duration.inMinutes}:${(videoPlayerController.value.duration.inSeconds % 60).toString().padLeft(2, '0')}",
+                        ),
                       ),
                     ),
                   ),
@@ -383,7 +412,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                   isVideoEnded = false;
                                 });
                                 videoPlayerController.play();
-                                timer = Timer(Duration(seconds: 2), () {
+                                videoControlTimer =
+                                    Timer(Duration(seconds: 2), () {
                                   setState(() {
                                     if (videoPlayerController.value.isPlaying)
                                       isControlHided = true;
@@ -414,35 +444,30 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     String courseId = ModalRoute.of(context).settings.arguments;
-    AuthenticationModel authenticationModel =
-        Provider.of<AuthenticationModel>(context);
+    authenticationModel = Provider.of<AuthenticationModel>(context);
     CourseModel favoriteCourseModel = Provider.of<CourseModel>(context);
-    Duration duration = Duration();
 
+    //Load data
     if (isLoading) {
-      fetchCourseData(courseId, authenticationModel.user.id).then((value) {
+      fetchCourseData(courseId).then((value) {
         setState(() {
           courseDetail = value;
-          duration =
-              Duration(seconds: (courseDetail.totalHours * 3600).round());
           print("video url: ${courseDetail.promoVidUrl}");
         });
-        initVideoPlayer();
+        initVideoPlayer(courseDetail.promoVidUrl, Duration());
 
-        getLastWatchedLesson(authenticationModel.token, courseId)
-            .then((lastLessonModel) {
+        getLastWatchedLesson(courseId).then((lastLessonModel) {
           if (lastLessonModel == null) return;
           courseDetail.section.forEach((section) {
             section.lesson.forEach((lesson) {
+              initVideoPlayer(
+                  lastLessonModel.payload.videoUrl,
+                  Duration(
+                      seconds: lastLessonModel.payload.currentTime.round()));
               if (lastLessonModel.payload.lessonId == lesson.id) {
-                VideoPlayerController newController =
-                    VideoPlayerController.network(
-                        lastLessonModel.payload.videoUrl);
-                fetchExercisesInLesson(authenticationModel.token, lesson.id)
-                    .then((value) {
+                fetchExercisesInLesson(lesson.id).then((value) {
                   setState(() {
-                    currentSectionIndex = section.numberOrder;
-                    currentLessonIndex = lesson.numberOrder;
+                    currentLessonId = lesson.id;
                     exercisesInLessonModel = value;
                     section.isExpanded = true;
                   });
@@ -451,13 +476,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             });
           });
         });
-        checkOwnCourse(authenticationModel.token, courseId)
-            .then((checkOwnCourseModel) {
+        checkOwnCourse(courseId).then((checkOwnCourseModel) {
           setState(() {
             isRegistered = checkOwnCourseModel.payload.isUserOwnCourse;
           });
         });
-        getLikeStatus(authenticationModel.token, courseId).then((value) {
+        getLikeStatus(courseId).then((value) {
           setState(() {
             isLiked = value;
           });
@@ -498,9 +522,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                   TextButton(
                                     child: Text('Yes'),
                                     onPressed: () {
-                                      getFreeCourse(authenticationModel.token,
-                                              courseId)
-                                          .then((value) {
+                                      getFreeCourse(courseId).then((value) {
                                         setState(() {
                                           isRegistered = value;
                                         });
@@ -547,7 +569,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                   Row(
                                     children: [
                                       Text(
-                                        "${new DateFormat.yMMMMd().format(courseDetail.createdAt.toLocal())} · ${duration.inHours}h ${duration.inMinutes}m",
+                                        "${new DateFormat.yMMMMd().format(courseDetail.createdAt.toLocal())} · ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inHours}h ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inMinutes}m",
                                         style:
                                             Theme.of(context).textTheme.caption,
                                       ),
@@ -596,9 +618,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                               color: Colors.redAccent,
                                             ),
                                             onPressed: () {
-                                              likeCourse(
-                                                      authenticationModel.token,
-                                                      courseId)
+                                              likeCourse(courseId)
                                                   .then((value) {
                                                 setState(() {
                                                   isLiked = value;
@@ -831,25 +851,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                   children: [
                                                     ListTile(
                                                       dense: true,
-                                                      leading: currentSectionIndex ==
-                                                                  section
-                                                                      .numberOrder &&
-                                                              currentLessonIndex ==
-                                                                  lesson
-                                                                      .numberOrder
-                                                          ? Icon(
-                                                              Icons
-                                                                  .play_circle_fill,
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .accentColor,
-                                                            )
-                                                          : Icon(
-                                                              Icons.circle,
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .backgroundColor,
-                                                            ),
+                                                      leading:
+                                                          currentLessonId ==
+                                                                  lesson.id
+                                                              ? Icon(
+                                                                  Icons
+                                                                      .play_circle_fill,
+                                                                  color: Theme.of(
+                                                                          context)
+                                                                      .accentColor,
+                                                                )
+                                                              : Icon(
+                                                                  Icons.circle,
+                                                                  color: Theme.of(
+                                                                          context)
+                                                                      .backgroundColor,
+                                                                ),
                                                       title: InkWell(
                                                         child:
                                                             Text(lesson.name),
@@ -858,8 +875,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                                 print(
                                                                     lesson.id);
                                                                 getVideoInfo(
-                                                                        authenticationModel
-                                                                            .token,
                                                                         courseId,
                                                                         lesson
                                                                             .id)
@@ -869,28 +884,24 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                                       null) {
                                                                     return;
                                                                   }
-                                                                  VideoPlayerController
-                                                                      newController =
-                                                                      VideoPlayerController.network(videoProgressModel
+
+                                                                  initVideoPlayer(
+                                                                      videoProgressModel
                                                                           .payload
-                                                                          .videoUrl);
+                                                                          .videoUrl,
+                                                                      Duration());
                                                                   fetchExercisesInLesson(
-                                                                          authenticationModel
-                                                                              .token,
                                                                           lesson
                                                                               .id)
                                                                       .then(
                                                                           (value) {
                                                                     setState(
                                                                         () {
-                                                                      currentSectionIndex =
-                                                                          section
-                                                                              .numberOrder;
-                                                                      currentLessonIndex =
-                                                                          lesson
-                                                                              .numberOrder;
                                                                       exercisesInLessonModel =
                                                                           value;
+                                                                      currentLessonId =
+                                                                          lesson
+                                                                              .id;
                                                                     });
                                                                   });
                                                                 });
