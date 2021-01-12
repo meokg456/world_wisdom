@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/screen/account_management/profile/profile_screen.dart';
 import 'package:world_wisdom/screen/account_management/setting/setting_screen.dart';
 import 'package:world_wisdom/screen/course/course_detail/course_detail_screen.dart';
@@ -28,12 +29,7 @@ class TabData {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  List<TabData> tabs = [
-    TabData("Home", Icons.home_outlined, HomeTab()),
-    TabData("Download", Icons.arrow_circle_down_outlined, DownloadTab()),
-    TabData("Browse", Icons.apps, BrowseTab()),
-    TabData("Search", Icons.search, SearchTab())
-  ];
+  List<TabData> tabs = [];
 
   void selectedTab(int selectedItem) {
     setState(() {
@@ -54,6 +50,14 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    tabs.clear();
+    tabs.addAll([
+      TabData(S.of(context).home, Icons.home_outlined, HomeTab()),
+      TabData(S.of(context).download, Icons.arrow_circle_down_outlined,
+          DownloadTab()),
+      TabData(S.of(context).browse, Icons.apps, BrowseTab()),
+      TabData(S.of(context).search, Icons.search, SearchTab())
+    ]);
     bool isFullScreen =
         context.select((AppMode mode) => mode.isWatchingExpandedVideo);
     return WillPopScope(

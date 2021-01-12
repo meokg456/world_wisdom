@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/screen/course/course_list/course_list_screen.dart';
 import 'package:world_wisdom/screen/key/key.dart';
@@ -42,14 +43,16 @@ class VerticalCoursesListItem extends StatelessWidget {
           SizedBox(
             height: 2,
           ),
-          Text(
-              "${course.createdAt == null ? null : DateFormat.yMMMMd().format(course.createdAt.toLocal())}",
-              style: Theme.of(context).textTheme.caption),
+          course.createdAt == null
+              ? SizedBox()
+              : Text(
+                  "${DateFormat.yMMMMd().format(course.createdAt.toLocal())}",
+                  style: Theme.of(context).textTheme.caption),
           SizedBox(
             height: 2,
           ),
           Text(
-              "${course.price == 0 || course.price == null ? "Free" : NumberFormat.currency(locale: Localizations.localeOf(context).toString()).format(course.price)} · ${duration.inHours}h ${duration.inMinutes}m",
+              "${course.price == 0 || course.price == null ? S.of(context).free : NumberFormat.currency(locale: Localizations.localeOf(context).toString()).format(course.price)} · ${duration.inHours}h ${duration.inMinutes}m",
               style: Theme.of(context).textTheme.caption),
           SizedBox(
             height: 2,
@@ -76,19 +79,6 @@ class VerticalCoursesListItem extends StatelessWidget {
                   style: Theme.of(context).textTheme.caption),
             ],
           )
-        ],
-      ),
-      trailing: PopupMenuButton<MenuItem>(
-        onSelected: selectMenuItem,
-        itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuItem>>[
-          const PopupMenuItem<MenuItem>(
-            value: MenuItem.download,
-            child: Text('Download'),
-          ),
-          const PopupMenuItem<MenuItem>(
-            value: MenuItem.share,
-            child: Text('Share'),
-          ),
         ],
       ),
     );

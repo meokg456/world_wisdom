@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 
 class HorizontalCoursesListHeader extends StatelessWidget {
   final String title;
@@ -15,7 +16,8 @@ class HorizontalCoursesListHeader extends StatelessWidget {
           title,
           style: Theme.of(context).textTheme.headline6,
         ),
-        TextButton(onPressed: onPressed, child: Text("See all >"))
+        TextButton(
+            onPressed: onPressed, child: Text("${S.of(context).seeAll} >"))
       ],
     );
   }

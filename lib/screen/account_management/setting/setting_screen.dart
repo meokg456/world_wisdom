@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user_type.dart';
@@ -20,7 +21,7 @@ class _SettingScreenState extends State<SettingScreen> {
     User user = context.select((AuthenticationModel model) => model.user);
     appMode = context.select((AppMode appMode) => appMode);
     return Scaffold(
-      appBar: AppBar(title: Text("Setting")),
+      appBar: AppBar(title: Text(S.of(context).setting)),
       body: Container(
         margin: EdgeInsets.symmetric(vertical: 35),
         child: ListView(
@@ -39,7 +40,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 : SizedBox(),
             Divider(),
             ListTile(
-              title: Text("Dark mode"),
+              title: Text(S.of(context).darkMode),
               trailing: Switch(
                 value: appMode.isDark,
                 onChanged: (bool value) {
@@ -56,7 +57,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         Keys.appNavigationKey.currentState
                             .pushNamed("/authentication/login");
                       },
-                      child: Text("SIGN IN"),
+                      child: Text(S.of(context).signInUpperCase),
                     ),
                   )
                 : Container(
@@ -70,18 +71,18 @@ class _SettingScreenState extends State<SettingScreen> {
                                       horizontal: 5, vertical: 10),
                                   contentPadding: EdgeInsets.symmetric(
                                       horizontal: 24, vertical: 10),
-                                  title: Text('Sign out'),
-                                  content: Text(
-                                      'Are you sure you want to sign out? This may remove any downloaded content'),
+                                  title: Text(S.of(context).signOut),
+                                  content: Text(S.of(context).signOutConfirm),
                                   actions: <Widget>[
                                     TextButton(
-                                      child: Text('Hủy'),
+                                      child: Text(S.of(context).signOutCancel),
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                       },
                                     ),
                                     TextButton(
-                                      child: Text('SIGN OUT'),
+                                      child:
+                                          Text(S.of(context).signOutUpperCase),
                                       onPressed: () async {
                                         Navigator.of(context).pop();
                                         Provider.of<AuthenticationModel>(
@@ -98,7 +99,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                   ],
                                 ));
                       },
-                      child: Text("SIGN OUT"),
+                      child: Text(S.of(context).signOut),
                     ),
                   )
           ],

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/category_model/category.dart';
 import 'package:world_wisdom/model/category_model/category_model.dart';
@@ -80,7 +81,7 @@ class _BrowseTabState extends State<BrowseTab> {
     }
 
     return Scaffold(
-      appBar: MainTabAppBar("Browse"),
+      appBar: MainTabAppBar(S.of(context).browse),
       body: ListView.builder(
           itemCount: categoryModel.categories.length + 1,
           padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
@@ -96,7 +97,7 @@ class _BrowseTabState extends State<BrowseTab> {
                             ? Container(
                                 margin: EdgeInsets.symmetric(vertical: 3),
                                 child: Text(
-                                  "Sign in to skill up today",
+                                  S.of(context).signInHint,
                                   style: Theme.of(context).textTheme.headline6,
                                   textAlign: TextAlign.left,
                                 ),
@@ -105,7 +106,7 @@ class _BrowseTabState extends State<BrowseTab> {
                         Container(
                           margin: EdgeInsets.only(bottom: 10),
                           child: Text(
-                            "Keep your skills up-to-date with access to thousands of courses by industry experts",
+                            S.of(context).browseEncourage,
                             style: Theme.of(context).textTheme.subtitle1,
                           ),
                         ),
@@ -118,7 +119,7 @@ class _BrowseTabState extends State<BrowseTab> {
                                     .pushNamed("/authentication/login");
                               },
                               child: Text(
-                                "SIGN IN TO START WATCHING",
+                                S.of(context).signInNavigateButtonText,
                                 style: Theme.of(context).textTheme.button,
                               )),
                         ),

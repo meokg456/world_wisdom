@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/search_v2_model/search_history.dart';
@@ -109,12 +110,6 @@ class _SearchTabState extends State<SearchTab>
     if (response.statusCode == 200) {
       print(response.body);
       return SearchV2Response.fromJson(jsonDecode(response.body));
-      // setState(() {
-      //   courses.addAll(searchResponse.payload.courses.data);
-      //   instructors.addAll(searchResponse.payload.instructors.data);
-      //   totalCourses = searchResponse.payload.courses.total;
-      //   totalInstructors = searchResponse.payload.instructors.total;
-      // });
     }
     return null;
   }
@@ -144,7 +139,7 @@ class _SearchTabState extends State<SearchTab>
     if (!isFocus) {
       tabAllWidgets.add(ListTile(
         title: Text(
-          "Courses",
+          S.of(context).courses,
           style: Theme.of(context).textTheme.headline5,
         ),
         trailing: TextButton(
@@ -152,7 +147,7 @@ class _SearchTabState extends State<SearchTab>
             tabController.index = 1;
           },
           child: Text(
-            "$totalCourses results >",
+            "$totalCourses ${S.of(context).results} >",
             style: Theme.of(context).textTheme.caption,
           ),
         ),
@@ -160,11 +155,11 @@ class _SearchTabState extends State<SearchTab>
       tabAllWidgets.add(Divider());
       tabCoursesWidgets.add(ListTile(
         title: Text(
-          "$totalCourses results",
+          "$totalCourses ${S.of(context).results}",
           style: Theme.of(context).textTheme.caption,
         ),
         trailing: Text(
-          "Cheapest",
+          S.of(context).cheapest,
           style: Theme.of(context).textTheme.caption,
         ),
       ));
@@ -179,7 +174,7 @@ class _SearchTabState extends State<SearchTab>
               padding: EdgeInsets.all(10),
               width: 200,
               child: Text(
-                "Sorry, we couldn't find any course matches for \"${searchTextFieldController.text}\"",
+                "${S.of(context).coursesNotFound} \"${searchTextFieldController.text}\"",
                 textAlign: TextAlign.center,
               ),
             ),
@@ -198,12 +193,12 @@ class _SearchTabState extends State<SearchTab>
       });
       tabAllWidgets.add(ListTile(
         title: Text(
-          "Authors",
+          S.of(context).instructors,
           style: Theme.of(context).textTheme.headline5,
         ),
         trailing: TextButton(
           child: Text(
-            "$totalInstructors results >",
+            "$totalInstructors ${S.of(context).results} >",
             style: Theme.of(context).textTheme.caption,
           ),
           onPressed: () {
@@ -213,7 +208,7 @@ class _SearchTabState extends State<SearchTab>
       ));
       tabAuthorsWidgets.add(ListTile(
         title: Text(
-          "$totalInstructors results",
+          "$totalInstructors ${S.of(context).results}",
           style: Theme.of(context).textTheme.caption,
         ),
       ));
@@ -229,7 +224,7 @@ class _SearchTabState extends State<SearchTab>
               padding: EdgeInsets.all(10),
               width: 200,
               child: Text(
-                "Sorry, we couldn't find any author matches for \"${searchTextFieldController.text}\"",
+                "${S.of(context).instructorsNotFound} \"${searchTextFieldController.text}\"",
                 textAlign: TextAlign.center,
               ),
             ),
@@ -270,10 +265,22 @@ class _SearchTabState extends State<SearchTab>
             });
           },
           decoration: InputDecoration(
-              hintText: "Search...",
-              prefixIcon: Icon(Icons.search),
+              hintText: "${S.of(context).search}...",
+              prefixIcon: Icon(
+                Icons.search,
+                color: isFocus ? Theme.of(context).accentColor : Colors.black87,
+              ),
+              focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                      color: isFocus
+                          ? Theme.of(context).accentColor
+                          : Colors.black87)),
               suffixIcon: IconButton(
-                icon: Icon(Icons.clear),
+                icon: Icon(
+                  Icons.clear,
+                  color:
+                      isFocus ? Theme.of(context).accentColor : Colors.black87,
+                ),
                 onPressed: () {
                   searchTextFieldController.text = "";
                   setState(() {
@@ -289,7 +296,11 @@ class _SearchTabState extends State<SearchTab>
             : TabBar(
                 controller: tabController,
                 labelPadding: EdgeInsets.all(15),
-                tabs: [Text("All"), Text("Courses"), Text("Authors")],
+                tabs: [
+                  Text(S.of(context).all),
+                  Text(S.of(context).courses),
+                  Text(S.of(context).instructors)
+                ],
               ),
       ),
       body: isFocus

@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user_model.dart';
@@ -32,6 +34,8 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     loadData(context).whenComplete(() {
       Navigator.pop(context);
       Navigator.pushNamed(context, "/main");
@@ -39,43 +43,45 @@ class SplashScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            SizedBox(
-              height: 230,
-            ),
-            CircleAvatar(
-              backgroundColor: Colors.white,
-              radius: 50,
-              child: Image.asset(
-                'resources/images/online-course.png',
-                height: 70,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              SizedBox(
+                height: 230,
               ),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Text(
-              'ITEdu',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-            ),
-            SizedBox(
-              height: 150,
-            ),
-            CircularProgressIndicator(
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(Theme.of(context).accentColor),
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Text(
-              'Online courses\n for students',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-          ],
+              CircleAvatar(
+                backgroundColor: Colors.white,
+                radius: 50,
+                child: Image.asset(
+                  'resources/images/online-course.png',
+                  height: 70,
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                'World wisdom',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+              ),
+              SizedBox(
+                height: 150,
+              ),
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Theme.of(context).accentColor),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                S.of(context).appHint,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ],
+          ),
         ),
       ),
     );

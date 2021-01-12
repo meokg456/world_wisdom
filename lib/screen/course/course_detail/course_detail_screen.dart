@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/course_model/check_own_course_model.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
@@ -57,7 +58,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
   Future<CourseDetail> fetchCourseData(String courseId) async {
     var response = await http.get(
-        "${Constants.apiUrl}/course/get-course-detail/$courseId/${authenticationModel.user.id}");
+        "${Constants.apiUrl}/course/get-course-detail/$courseId/${authenticationModel.user == null ? "null" : authenticationModel.user.id}");
     print(response.body);
     if (response.statusCode == 200) {
       return CourseDetailModel.fromJson(jsonDecode(response.body)).payload;
@@ -383,10 +384,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                   videoPlayerController.play();
                                   videoControlTimer =
                                       Timer(Duration(seconds: 2), () {
-                                    setState(() {
-                                      if (videoPlayerController.value.isPlaying)
+                                    if (videoPlayerController.value.isPlaying)
+                                      setState(() {
                                         isControlHided = true;
-                                    });
+                                      });
                                   });
                                 }
                               },
@@ -594,18 +595,18 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                     horizontal: 5, vertical: 10),
                                 contentPadding: EdgeInsets.symmetric(
                                     horizontal: 24, vertical: 10),
-                                title: Text('Register'),
+                                title: Text(S.of(context).register),
                                 content: Text(
-                                    'Do you want to register this course?'),
+                                    S.of(context).registerCourseConfirmation),
                                 actions: <Widget>[
                                   TextButton(
-                                    child: Text('No'),
+                                    child: Text(S.of(context).signOutCancel),
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
                                   ),
                                   TextButton(
-                                    child: Text('Yes'),
+                                    child: Text(S.of(context).register),
                                     onPressed: () {
                                       getFreeCourse(courseId).then((value) {
                                         setState(() {
@@ -712,7 +713,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       : Expanded(
                           child: ListView(
                             padding: EdgeInsets.only(
-                                left: 20, top: 0, right: 20, bottom: 100),
+                                left: 20, top: 0, right: 20, bottom: 20),
                             children: [
                               Text(
                                 courseDetail.title,
@@ -758,6 +759,29 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                   )
                                 ],
                               ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Chip(
+                                    avatar: courseDetail.price == 0
+                                        ? Icon(
+                                            Icons.done,
+                                            color: Colors.green,
+                                          )
+                                        : Icon(
+                                            Icons.attach_money,
+                                            color: Colors.yellow,
+                                          ),
+                                    label: Text(
+                                      courseDetail.price == 0
+                                          ? S.of(context).free
+                                          : NumberFormat.currency(
+                                                  locale:
+                                                      Localizations.localeOf(
+                                                              context)
+                                                          .toString())
+                                              .format(courseDetail.price),
+                                    )),
+                              ),
                               SizedBox(
                                 height: 10,
                               ),
@@ -800,7 +824,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                           });
                                         },
                                       ),
-                                      Text("Like")
+                                      Text(S.of(context).like)
                                     ],
                                   ),
                                   Column(
@@ -813,7 +837,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                         ),
                                         onPressed: () {},
                                       ),
-                                      Text("Share")
+                                      Text(S.of(context).share)
                                     ],
                                   ),
                                   Column(
@@ -823,7 +847,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                         icon: Icon(Icons.download_rounded),
                                         onPressed: () {},
                                       ),
-                                      Text("Download")
+                                      Text(S.of(context).download)
                                     ],
                                   ),
                                 ],
@@ -854,7 +878,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                       Align(
                                         alignment: Alignment.topLeft,
                                         child: Text(
-                                          "Achievements",
+                                          S.of(context).achievement,
                                           style: Theme.of(context)
                                               .textTheme
                                               .headline6,
@@ -888,7 +912,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                       Align(
                                         alignment: Alignment.topLeft,
                                         child: Text(
-                                          "Requirements",
+                                          S.of(context).requirement,
                                           style: Theme.of(context)
                                               .textTheme
                                               .headline6,
@@ -925,7 +949,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                       Align(
                                         alignment: Alignment.topLeft,
                                         child: Text(
-                                          "Descriptions",
+                                          S.of(context).descriptions,
                                           style: Theme.of(context)
                                               .textTheme
                                               .headline6,
@@ -994,7 +1018,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                             Duration lessonDuration = Duration(
                                                 seconds: (lesson.hours * 3600)
                                                     .round());
-                                            if (isRegistered) {
+                                            if (isRegistered &&
+                                                lesson.currentProgress ==
+                                                    null) {
                                               getVideoInfo(courseId, lesson.id)
                                                   .then((videoProgressModel) {
                                                 lesson.currentProgress =
@@ -1112,7 +1138,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                 (BuildContext context,
                                                     bool isExpanded) {
                                               return ListTile(
-                                                title: Text("Exercise"),
+                                                title: Text(
+                                                    S.of(context).exercise),
                                               );
                                             },
                                             body: Column(
@@ -1134,7 +1161,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 height: 20,
                               ),
                               Text(
-                                "The same topic courses",
+                                S.of(context).sameCategory,
                                 style: Theme.of(context).textTheme.headline5,
                               ),
                               SizedBox(

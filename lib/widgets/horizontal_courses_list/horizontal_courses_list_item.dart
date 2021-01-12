@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 
@@ -57,7 +58,7 @@ class HorizontalCoursesListItem extends StatelessWidget {
                   ),
                   Text(
                     course.price == 0
-                        ? "Free"
+                        ? S.of(context).free
                         : NumberFormat.currency(
                                 locale:
                                     Localizations.localeOf(context).toString())

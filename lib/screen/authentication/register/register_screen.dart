@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/screen/authentication/login_screen/login_data.dart';
 import 'package:world_wisdom/screen/authentication/validator/validator.dart';
 import 'package:http/http.dart' as http;
@@ -57,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Register"),
+        title: Text(S.of(context).register),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 30, vertical: 30),
@@ -71,7 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: Validator.validateUsername,
                   keyboardType: TextInputType.name,
                   decoration: InputDecoration(
-                    labelText: "Username",
+                    labelText: S.of(context).usernameRegister,
                   )),
               TextFormField(
                   controller: _emailController,
@@ -87,7 +88,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: Validator.validatePhone,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
-                    labelText: "Phone",
+                    labelText: S.of(context).phoneNumber,
                   )),
               TextFormField(
                   controller: _passwordController,
@@ -95,21 +96,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: Validator.validatePassword,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                      labelText: "Password",
+                      labelText: S.of(context).password,
                       suffixIcon: Icon(Icons.visibility_off))),
               TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: true,
                   validator: (String confirmPassword) {
                     if (confirmPassword != _passwordController.value.text) {
-                      return "Confirm password does not match";
+                      return S.of(context).passwordNotMatch;
                     }
                     return null;
                   },
                   textInputAction: TextInputAction.done,
                   onEditingComplete: register,
                   decoration: InputDecoration(
-                      labelText: "Confirm password",
+                      labelText: S.of(context).confirmPassword,
                       suffixIcon: Icon(Icons.visibility_off))),
               _isFailed
                   ? SizedBox(
@@ -120,7 +121,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
               _isFailed
                   ? Text(
-                      "Email or phone number already existed",
+                      S.of(context).emailOrPhoneNumberExisted,
                       style: TextStyle(color: Colors.red),
                     )
                   : Text(""),
@@ -134,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: ElevatedButton(
                           onPressed: register,
                           child: Text(
-                            "Confirm",
+                            S.of(context).confirm,
                           )),
                     ),
             ],

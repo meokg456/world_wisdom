@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user_model.dart';
 import 'package:world_wisdom/screen/authentication/login_screen/login_data.dart';
@@ -62,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Sign In"),
+        title: Text(S.of(context).signIn),
       ),
       body: Builder(
         builder: (context) => SingleChildScrollView(
@@ -76,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textInputAction: TextInputAction.next,
                     validator: Validator.validateEmail,
                     decoration: InputDecoration(
-                      labelText: "Username (or Email)",
+                      labelText: S.of(context).usernameSignIn,
                     )),
                 TextFormField(
                     controller: _passwordController,
@@ -85,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     validator: Validator.validatePassword,
                     textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
-                        labelText: "Password",
+                        labelText: S.of(context).password,
                         suffixIcon: Icon(Icons.visibility_off))),
                 _isFailed
                     ? SizedBox(
@@ -96,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                 _isFailed
                     ? Text(
-                        "Invalid password or username",
+                        S.of(context).invalidPasswordOrUsername,
                         style: TextStyle(color: Colors.red),
                       )
                     : Text(""),
@@ -110,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: ElevatedButton(
                             onPressed: logIn,
                             child: Text(
-                              "SIGN IN",
+                              S.of(context).signInUpperCase,
                               style: Theme.of(context).textTheme.button,
                             )),
                       ),
@@ -125,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                   },
                   child: Text(
-                    "FORGOT PASSWORD?",
+                    "${S.of(context).forgotPasswordUpperCase}?",
                   ),
                 ),
                 Container(
@@ -135,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ListTile(
                       leading: Image.asset("resources/images/google_logo.png"),
                       title: Text(
-                        "SIGN IN WITH GOOGLE",
+                        S.of(context).signInWithGoogleUpperCase,
                       ),
                       dense: true,
                       contentPadding:
@@ -145,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 TextButton(
                   child: Text(
-                    "SIGN UP FREE?",
+                    S.of(context).signUpUpperCase,
                   ),
                   onPressed: () async {
                     LoginData data = await Navigator.pushNamed(

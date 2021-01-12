@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/screen/authentication/login_screen/login_data.dart';
 import 'package:world_wisdom/screen/authentication/validator/validator.dart';
 import 'package:http/http.dart' as http;
@@ -30,7 +31,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         headers: {"Content-Type": "application/json"});
     if (response.statusCode == 200) {
       LoginData data =
-          LoginData("Recovery email was sent", _emailController.text);
+          LoginData(S.of(context).recoveryEmailSent, _emailController.text);
       Navigator.pop(context, data);
     } else {
       setState(() {
@@ -46,7 +47,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Forget password"),
+        title: Text(S.of(context).forgotPassword),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
@@ -67,7 +68,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               height: 20,
             ),
             Text(
-              "Forgot Password",
+              S.of(context).forgotPassword,
               style: Theme.of(context).textTheme.headline4,
             ),
             SizedBox(
@@ -80,7 +81,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 child: Column(
                   children: [
                     Text(
-                      "Enter your email address and we'll send you a link to reset your password",
+                      S.of(context).forgotPasswordHint,
                       style: Theme.of(context).textTheme.subtitle1,
                     ),
                     TextFormField(
@@ -95,7 +96,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     _isFailed
                         ? Text(
-                            "The email address has not been registered",
+                            S.of(context).emailNotExisted,
                             style: TextStyle(color: Colors.red),
                           )
                         : Text(""),
@@ -112,7 +113,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                                 onPressed: sendEmail,
-                                child: Text("Send email"))),
+                                child: Text(S.of(context).sendEmail))),
                     Container(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -123,7 +124,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: Text("Cancel"))),
+                            child: Text(S.of(context).cancel))),
                     SizedBox(
                       height: 40,
                     ),

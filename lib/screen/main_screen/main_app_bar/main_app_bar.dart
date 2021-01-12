@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/main_screen.dart';
 
@@ -28,7 +29,7 @@ class MainTabAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: Icon(
             Icons.account_circle,
-            color: Colors.blue,
+            color: Theme.of(context).accentColor,
           ),
           onPressed: () {
             selectMenuItem(MenuItem.profile);
@@ -37,17 +38,17 @@ class MainTabAppBar extends StatelessWidget implements PreferredSizeWidget {
         PopupMenuButton<MenuItem>(
           onSelected: selectMenuItem,
           itemBuilder: (BuildContext context) => <PopupMenuEntry<MenuItem>>[
-            const PopupMenuItem<MenuItem>(
+            PopupMenuItem<MenuItem>(
               value: MenuItem.setting,
-              child: Text('Settings'),
+              child: Text(S.of(context).setting),
             ),
-            const PopupMenuItem<MenuItem>(
+            PopupMenuItem<MenuItem>(
               value: MenuItem.feedback,
-              child: Text('Send feedback'),
+              child: Text(S.of(context).sendFeedback),
             ),
-            const PopupMenuItem<MenuItem>(
+            PopupMenuItem<MenuItem>(
               value: MenuItem.support,
-              child: Text('Contact support'),
+              child: Text(S.of(context).contactSupport),
             ),
           ],
         )

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
@@ -124,7 +125,7 @@ class _HomeTabState extends State<HomeTab> {
     }
 
     return Scaffold(
-      appBar: MainTabAppBar("Home"),
+      appBar: MainTabAppBar(S.of(context).home),
       body: authenticationModel.isLoggedIn
           ? Container(
               child: ListView(
@@ -132,30 +133,31 @@ class _HomeTabState extends State<HomeTab> {
                 children: [
                   Column(
                     children: [
-                      HorizontalCoursesListHeader("Trending", () {
-                        CourseListData data =
-                            CourseListData("Trending", fetchTrendingCourseData);
+                      HorizontalCoursesListHeader(S.of(context).trending, () {
+                        CourseListData data = CourseListData(
+                            S.of(context).trending, fetchTrendingCourseData);
                         Keys.mainNavigatorKey.currentState
                             .pushNamed("/course-list", arguments: data);
                       }),
                       HorizontalCoursesList(trendingCourse),
-                      HorizontalCoursesListHeader("Top new", () {
-                        CourseListData data =
-                            CourseListData("Top new", fetchTopNewCourseData);
+                      HorizontalCoursesListHeader(S.of(context).topNew, () {
+                        CourseListData data = CourseListData(
+                            S.of(context).topNew, fetchTopNewCourseData);
                         Keys.mainNavigatorKey.currentState
                             .pushNamed("/course-list", arguments: data);
                       }),
                       HorizontalCoursesList(newCourse),
-                      HorizontalCoursesListHeader("Top rate", () {
-                        CourseListData data =
-                            CourseListData("Top rate", fetchTopRateCourseData);
+                      HorizontalCoursesListHeader(S.of(context).topRate, () {
+                        CourseListData data = CourseListData(
+                            S.of(context).topRate, fetchTopRateCourseData);
                         Keys.mainNavigatorKey.currentState
                             .pushNamed("/course-list", arguments: data);
                       }),
                       HorizontalCoursesList(bestCourse),
-                      HorizontalCoursesListHeader("Recommended for you", () {
+                      HorizontalCoursesListHeader(
+                          S.of(context).recommendedForYou, () {
                         CourseListData data = CourseListData(
-                            "Recommended for you", (limit, page) {
+                            S.of(context).recommendedForYou, (limit, page) {
                           return fetchRecommendedCourseData(
                               authenticationModel.user, limit, page);
                         });
@@ -169,7 +171,7 @@ class _HomeTabState extends State<HomeTab> {
                       Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Favorite",
+                            S.of(context).favorite,
                             style: Theme.of(context).textTheme.headline6,
                           )),
                       SizedBox(
@@ -189,7 +191,7 @@ class _HomeTabState extends State<HomeTab> {
                     Container(
                       margin: EdgeInsets.only(top: 80, bottom: 20),
                       child: Text(
-                        "Let's get you started",
+                        S.of(context).homeHint,
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.w600),
                       ),
@@ -206,7 +208,7 @@ class _HomeTabState extends State<HomeTab> {
                     Container(
                       margin: EdgeInsets.only(top: 10, bottom: 30),
                       child: Text(
-                        "Browse new & popular courses",
+                        S.of(context).browseHint,
                       ),
                     ),
                     IconButton(
@@ -221,7 +223,7 @@ class _HomeTabState extends State<HomeTab> {
                     Container(
                       margin: EdgeInsets.only(top: 5, bottom: 20),
                       child: Text(
-                        "Search the library",
+                        S.of(context).searchHint,
                       ),
                     ),
                   ],
