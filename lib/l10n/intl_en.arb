@@ -70,7 +70,7 @@
   "all" : "All",
   "exercise": "Exercises",
   "registerCourseConfirmation" : "Do you want to register this course?",
-  "rating" : "Rate from students",
+  "ratesFromStudent" : "Rates from students",
   "leaveRate" : "Leave a rate",
   "comments" : "Comments",
   "contentPoint" : "Content point",
@@ -79,5 +79,6 @@
   "rate" : "Rate",
   "rateSuccess" : "Rated successfully!",
   "thankYou": "Thank you :)",
-  "gotIt": "Got it!"
+  "gotIt": "Got it!",
+  "rates": "Rates"
 }

@@ -745,11 +745,11 @@ class S {
     );
   }
 
-  /// `Rate from students`
-  String get rating {
+  /// `Rates from students`
+  String get ratesFromStudent {
     return Intl.message(
-      'Rate from students',
-      name: 'rating',
+      'Rates from students',
+      name: 'ratesFromStudent',
       desc: '',
       args: [],
     );
@@ -840,6 +840,16 @@ class S {
     return Intl.message(
       'Got it!',
       name: 'gotIt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rates`
+  String get rates {
+    return Intl.message(
+      'Rates',
+      name: 'rates',
       desc: '',
       args: [],
     );

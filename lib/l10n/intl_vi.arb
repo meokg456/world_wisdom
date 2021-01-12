@@ -70,7 +70,7 @@
   "appHint" : "Khóa học hay\\n cho học sĩ",
   "exercise": "Bài tập",
   "registerCourseConfirmation" : "Bạn có muốn đăng ký khóa học?",
-  "rating" : "Đánh giá từ học viên",
+  "ratesFromStudent" : "Đánh giá từ học viên",
   "leaveRate": "Đánh giá",
   "comments" : "Lời bình luận",
   "contentPoint" : "Điểm nội dung",
@@ -79,5 +79,6 @@
   "rate" : "Đánh giá",
   "rateSuccess" : "Đánh giá thành công",
   "thankYou": "Cảm ơn bạn :)",
-  "gotIt": "Got it!"
+  "gotIt": "Got it!",
+  "rates": "Bình chọn"
 }

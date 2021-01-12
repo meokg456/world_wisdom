@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -98,7 +97,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       int index = courseDetail.ratings.ratingList
           .indexWhere((element) => element.user.id == rating.user.id);
       setState(() {
-        courseDetail.ratings.ratingList[index] = rating;
+        if (index != -1) courseDetail.ratings.ratingList[index] = rating;
         isUserRatingExpanded = false;
       });
 
@@ -784,36 +783,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                     ),
                                     label: Text(courseDetail.instructor.name)),
                               ),
-                              Row(
-                                children: [
-                                  Text(
-                                    "${new DateFormat.yMMMMd().format(courseDetail.createdAt.toLocal())} · ${Duration(seconds: (learnedHours * 3600).round()).inHours}h ${Duration(seconds: (learnedHours * 3600).round()).inMinutes}m / ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inHours}h ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inMinutes}m",
-                                    style: Theme.of(context).textTheme.caption,
-                                  ),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  RatingBar.builder(
-                                    initialRating: courseDetail.formalityPoint,
-                                    minRating: 1,
-                                    direction: Axis.horizontal,
-                                    allowHalfRating: true,
-                                    itemCount: 5,
-                                    itemSize: 12,
-                                    itemPadding:
-                                        EdgeInsets.symmetric(horizontal: 1),
-                                    itemBuilder: (context, _) => Icon(
-                                      Icons.star,
-                                      color: Colors.amber,
-                                    ),
-                                    ignoreGestures: true,
-                                    onRatingUpdate: (double value) {},
-                                  ),
-                                  Text(
-                                    " (${courseDetail.ratedNumber})",
-                                    style: Theme.of(context).textTheme.caption,
-                                  )
-                                ],
+                              Text(
+                                "${new DateFormat.yMMMMd().format(courseDetail.createdAt.toLocal())} · ${Duration(seconds: (learnedHours * 3600).round()).inHours}h ${Duration(seconds: (learnedHours * 3600).round()).inMinutes}m / ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inHours}h ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inMinutes}m",
+                                style: Theme.of(context).textTheme.caption,
                               ),
                               Align(
                                 alignment: Alignment.centerLeft,
@@ -1064,6 +1036,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 children: courseDetail.section
                                     .map<ExpansionPanel>((Section section) {
                                   return ExpansionPanel(
+                                      canTapOnHeader: true,
                                       headerBuilder: (BuildContext context,
                                           bool isExpanded) {
                                         Duration sectionDuration = Duration(
@@ -1206,6 +1179,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                       },
                                       children: [
                                         ExpansionPanel(
+                                            canTapOnHeader: true,
                                             headerBuilder:
                                                 (BuildContext context,
                                                     bool isExpanded) {
@@ -1232,10 +1206,102 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                             isExpanded: isExercisesExpanded)
                                       ],
                                     ),
-                              SizedBox(
-                                height: 20,
-                              ),
+                              Card(
+                                  margin: EdgeInsets.only(bottom: 0, top: 10),
+                                  child: Column(
+                                    children: [
+                                      ListTile(
+                                        leading: Icon(Icons.star,
+                                            color: Colors.amber),
+                                        title: Text(
+                                            "${S.of(context).ratesFromStudent}"),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 2,
+                                            child: Column(
+                                              children: [
+                                                Text(
+                                                  courseDetail.averagePoint,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .headline6,
+                                                ),
+                                                Text(
+                                                  "(${courseDetail.ratedNumber} ${S.of(context).rates})",
+                                                  maxLines: 1,
+                                                ),
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+                                                Text(
+                                                  "${courseDetail.contentPoint.toStringAsFixed(1)} ${S.of(context).contentPoint}",
+                                                  maxLines: 1,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .caption,
+                                                ),
+                                                Text(
+                                                  "${courseDetail.formalityPoint.toStringAsFixed(1)} ${S.of(context).formalityPoint}",
+                                                  maxLines: 1,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .caption,
+                                                ),
+                                                Text(
+                                                  "${courseDetail.presentationPoint.toStringAsFixed(1)} ${S.of(context).presentationPoint}",
+                                                  maxLines: 1,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .caption,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 3,
+                                            child: Column(
+                                                children: [4, 3, 2, 1, 0]
+                                                    .map((index) {
+                                              return Row(
+                                                children: [
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text("${index + 1}"),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Icon(Icons.star,
+                                                      color: Colors.amber),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Container(
+                                                      width: 100,
+                                                      child:
+                                                          LinearProgressIndicator(
+                                                        value: courseDetail
+                                                                .ratings
+                                                                .stars[index] /
+                                                            100,
+                                                      )),
+                                                  SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  Text(
+                                                      "${courseDetail.ratings.stars[index]}%")
+                                                ],
+                                              );
+                                            }).toList()),
+                                          )
+                                        ],
+                                      ),
+                                    ],
+                                  )),
                               ExpansionPanelList(
+                                elevation: 0,
                                 expansionCallback:
                                     (int index, bool isExpanded) {
                                   setState(() {
@@ -1252,9 +1318,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                             color:
                                                 Theme.of(context).accentColor,
                                           ),
-                                          title: Text(S.of(context).rating),
+                                          title: Text(S.of(context).rates),
                                         );
                                       },
+                                      canTapOnHeader: true,
                                       body: Column(
                                         children: courseDetail
                                             .ratings.ratingList
@@ -1319,10 +1386,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                       isExpanded: isRatingExpanded)
                                 ],
                               ),
-                              SizedBox(
-                                height: 20,
-                              ),
                               Card(
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 0, vertical: 10),
                                 child: Container(
                                   padding: EdgeInsets.symmetric(
                                       vertical: 10, horizontal: 20),
