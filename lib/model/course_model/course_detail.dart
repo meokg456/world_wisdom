@@ -19,6 +19,7 @@ class CourseDetail {
     this.formalityPoint,
     this.contentPoint,
     this.presentationPoint,
+    this.averagePoint,
     this.imageUrl,
     this.promoVidUrl,
     this.status,
@@ -29,7 +30,6 @@ class CourseDetail {
     this.typeUploadVideoLesson,
     this.section,
     this.ratings,
-    this.averagePoint,
     this.instructor,
     this.coursesLikeCategory,
   });
@@ -46,6 +46,7 @@ class CourseDetail {
   int videoNumber;
   double totalHours;
   double formalityPoint;
+  String averagePoint;
   double contentPoint;
   double presentationPoint;
   String imageUrl;
@@ -58,7 +59,6 @@ class CourseDetail {
   int typeUploadVideoLesson;
   List<Section> section;
   Ratings ratings;
-  String averagePoint;
   Instructor instructor;
   List<Course> coursesLikeCategory;
 
@@ -76,11 +76,22 @@ class CourseDetail {
         ratedNumber: json["ratedNumber"],
         videoNumber: json["videoNumber"],
         totalHours: json["totalHours"].toDouble(),
-        formalityPoint: json["formalityPoint"].toDouble(),
-        contentPoint: json["contentPoint"] == null
-            ? null
-            : json["contentPoint"].toDouble(),
-        presentationPoint: json["presentationPoint"].toDouble(),
+        formalityPoint: json["formalityPoint"] != null
+            ? json["formalityPoint"].toDouble()
+            : json["courseFormalityPoint"] != null
+                ? json["courseFormalityPoint"].toDouble()
+                : 0,
+        contentPoint: json["contentPoint"] != null
+            ? json["contentPoint"].toDouble()
+            : json["courseContentPoint"] != null
+                ? json["courseContentPoint"].toDouble()
+                : 0,
+        presentationPoint: json["presentationPoint"] != null
+            ? json["presentationPoint"].toDouble()
+            : json["coursePresentationPoint"] != null
+                ? json["coursePresentationPoint"].toDouble()
+                : 0,
+        averagePoint: json["averagePoint"] != null ? json["averagePoint"] : "",
         imageUrl: json["imageUrl"],
         promoVidUrl: json["promoVidUrl"],
         status: json["status"],
@@ -95,15 +106,13 @@ class CourseDetail {
                 json["section"].map((x) => Section.fromJson(x))),
         ratings:
             json["ratings"] == null ? null : Ratings.fromJson(json["ratings"]),
-        averagePoint:
-            json["averagePoint"] == null ? null : json["averagePoint"],
         instructor: json["instructor"] == null
             ? null
             : Instructor.fromJson(json["instructor"]),
         coursesLikeCategory: json["coursesLikeCategory"] == null
             ? null
-            : List<Course>.from(json["coursesLikeCategory"]
-                .map((x) => Course.fromJson(x))),
+            : List<Course>.from(
+                json["coursesLikeCategory"].map((x) => Course.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +17,7 @@ import 'package:world_wisdom/model/course_model/course_detail_model.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/model/exercise_model/exercises_in_lesson_model.dart';
 import 'package:world_wisdom/model/lesson_model/last_watched_lesson_model.dart';
+import 'package:world_wisdom/model/lesson_model/lesson.dart';
 import 'package:world_wisdom/model/section_model/section.dart';
 import 'package:world_wisdom/model/video_progress_model/video_progress_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
@@ -43,6 +45,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool isControlHided = false;
   bool isVideoEnded = false;
   bool isYoutubeFullScreen = false;
+  double learnedHours = 0;
   String videoId;
   Duration youtubeLastWatchedPosition = Duration();
   ExercisesInLessonModel exercisesInLessonModel;
@@ -162,13 +165,15 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   void initState() {
     videoControlTimer = Timer(Duration(seconds: 2), () {
       setState(() {
-        if (videoPlayerController.value.isPlaying) isControlHided = true;
+        if (videoPlayerController != null) if (videoPlayerController
+            .value.isPlaying) isControlHided = true;
       });
     });
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+
     super.initState();
   }
 
@@ -195,6 +200,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
   }
 
+  void finishLesson() async {
+    var response = await http.post("${Constants.apiUrl}/lesson/update-status",
+        body: jsonEncode({"lessonId": currentLessonId}),
+        headers: {
+          "Authorization": "Bearer ${authenticationModel.token}",
+          "Content-Type": "application/json"
+        });
+    print(response.body);
+  }
+
   void updateVideoPlayer() {
     if (videoPlayerController.value.position ==
         videoPlayerController.value.duration) {
@@ -203,9 +218,26 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         isControlHided = false;
         isVideoEnded = true;
       });
+      finishLesson();
     }
     double ratio = videoPlayerController.value.position.inSeconds /
         videoPlayerController.value.duration.inSeconds;
+    if (ratio > 0.9) {
+      Lesson currentLesson;
+      courseDetail.section.forEach((section) {
+        section.lesson.forEach((lesson) {
+          if (currentLessonId == lesson.id) {
+            currentLesson = lesson;
+            return;
+          }
+        });
+      });
+      setState(() {
+        currentLesson.currentProgress.isFinish = true;
+      });
+      finishLesson();
+    }
+    print(ratio);
     updateCurrentVideoPosition(
         videoPlayerController.value.position.inSeconds.toDouble());
     setState(() {
@@ -214,11 +246,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void initVideoPlayer(String videoUrl, Duration start) {
-    setState(() {
-      if (videoPlayerController != null) {
-        videoPlayerController.pause();
-      }
+    if (videoPlayerController != null) {
+      videoPlayerController.pause();
+      videoPlayerController.dispose();
+    }
 
+    setState(() {
       videoPlayerController = VideoPlayerController.network(videoUrl);
       initialize = videoPlayerController.initialize().whenComplete(() {
         if (videoPlayerController.value.duration != null) {
@@ -526,6 +559,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           isLoading = false;
         });
       });
+    } else {
+      learnedHours = 0;
+      courseDetail.section.forEach((section) {
+        section.lesson.forEach((lesson) {
+          if (lesson.currentProgress != null) {
+            setState(() {
+              if (lesson.currentProgress.isFinish) {
+                learnedHours += lesson.hours;
+              } else {
+                learnedHours += lesson.currentProgress.currentTime / 3600;
+              }
+            });
+          }
+          print(learnedHours);
+        });
+      });
     }
     return WillPopScope(
       onWillPop: onPop,
@@ -586,8 +635,44 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               player: YoutubePlayer(
                                 controller: youtubePlayerController,
                                 showVideoProgressIndicator: true,
+                                onEnded: (data) {
+                                  setState(() {
+                                    Lesson currentLesson;
+                                    courseDetail.section.forEach((section) {
+                                      section.lesson.forEach((lesson) {
+                                        if (currentLessonId == lesson.id) {
+                                          currentLesson = lesson;
+                                          return;
+                                        }
+                                      });
+                                    });
+                                    currentLesson.currentProgress.isFinish =
+                                        true;
+                                  });
+                                  finishLesson();
+                                },
                                 onReady: () {
                                   youtubePlayerController.addListener(() {
+                                    if (youtubePlayerController
+                                                .value.position.inSeconds /
+                                            youtubePlayerController
+                                                .metadata.duration.inSeconds >
+                                        0.9) {
+                                      Lesson currentLesson;
+                                      courseDetail.section.forEach((section) {
+                                        section.lesson.forEach((lesson) {
+                                          if (currentLessonId == lesson.id) {
+                                            currentLesson = lesson;
+                                            return;
+                                          }
+                                        });
+                                      });
+                                      setState(() {
+                                        currentLesson.currentProgress.isFinish =
+                                            true;
+                                      });
+                                      finishLesson();
+                                    }
                                     updateCurrentVideoPosition(
                                         youtubePlayerController
                                             .value.position.inSeconds
@@ -645,7 +730,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               Row(
                                 children: [
                                   Text(
-                                    "${new DateFormat.yMMMMd().format(courseDetail.createdAt.toLocal())} · ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inHours}h ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inMinutes}m",
+                                    "${new DateFormat.yMMMMd().format(courseDetail.createdAt.toLocal())} · ${Duration(seconds: (learnedHours * 3600).round()).inHours}h ${Duration(seconds: (learnedHours * 3600).round()).inMinutes}m / ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inHours}h ${Duration(seconds: (courseDetail.totalHours * 3600).round()).inMinutes}m",
                                     style: Theme.of(context).textTheme.caption,
                                   ),
                                   SizedBox(
@@ -909,9 +994,64 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                             Duration lessonDuration = Duration(
                                                 seconds: (lesson.hours * 3600)
                                                     .round());
+                                            if (isRegistered) {
+                                              getVideoInfo(courseId, lesson.id)
+                                                  .then((videoProgressModel) {
+                                                lesson.currentProgress =
+                                                    videoProgressModel.payload;
+                                              });
+                                            }
                                             return Column(
                                               children: [
                                                 ListTile(
+                                                  onTap: isRegistered
+                                                      ? () {
+                                                          print(lesson.id);
+                                                          getVideoInfo(courseId,
+                                                                  lesson.id)
+                                                              .then(
+                                                                  (videoProgressModel) {
+                                                            if (videoProgressModel ==
+                                                                null) {
+                                                              return;
+                                                            }
+                                                            String id = YoutubePlayer
+                                                                .convertUrlToId(
+                                                                    videoProgressModel
+                                                                        .payload
+                                                                        .videoUrl);
+
+                                                            if (id != null) {
+                                                              if (youtubePlayerController ==
+                                                                  null) {
+                                                                videoId = id;
+                                                                initYoutubeVideoPlayer();
+                                                              } else
+                                                                youtubePlayerController
+                                                                    .load(id);
+                                                            } else
+                                                              initVideoPlayer(
+                                                                  videoProgressModel
+                                                                      .payload
+                                                                      .videoUrl,
+                                                                  Duration(
+                                                                      seconds: videoProgressModel
+                                                                          .payload
+                                                                          .currentTime
+                                                                          .round()));
+                                                            fetchExercisesInLesson(
+                                                                    lesson.id)
+                                                                .then((value) {
+                                                              setState(() {
+                                                                exercisesInLessonModel =
+                                                                    value;
+                                                                currentLessonId =
+                                                                    lesson.id;
+                                                              });
+                                                            });
+                                                          });
+                                                        }
+                                                      : null,
                                                   dense: true,
                                                   leading: currentLessonId ==
                                                           lesson.id
@@ -922,59 +1062,25 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                               Theme.of(context)
                                                                   .accentColor,
                                                         )
-                                                      : Icon(
-                                                          Icons.circle,
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .backgroundColor,
-                                                        ),
+                                                      : (lesson.currentProgress !=
+                                                                  null
+                                                              ? lesson
+                                                                  .currentProgress
+                                                                  .isFinish
+                                                              : false)
+                                                          ? Icon(
+                                                              Icons.done,
+                                                              color:
+                                                                  Colors.green,
+                                                            )
+                                                          : Icon(
+                                                              Icons.circle,
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .backgroundColor,
+                                                            ),
                                                   title: InkWell(
                                                     child: Text(lesson.name),
-                                                    onTap: isRegistered
-                                                        ? () {
-                                                            print(lesson.id);
-                                                            getVideoInfo(
-                                                                    courseId,
-                                                                    lesson.id)
-                                                                .then(
-                                                                    (videoProgressModel) {
-                                                              if (videoProgressModel ==
-                                                                  null) {
-                                                                return;
-                                                              }
-                                                              String id = YoutubePlayer
-                                                                  .convertUrlToId(
-                                                                      videoProgressModel
-                                                                          .payload
-                                                                          .videoUrl);
-
-                                                              if (id != null) {
-                                                                youtubePlayerController
-                                                                    .load(id);
-                                                              } else
-                                                                initVideoPlayer(
-                                                                    videoProgressModel
-                                                                        .payload
-                                                                        .videoUrl,
-                                                                    Duration(
-                                                                        seconds: videoProgressModel
-                                                                            .payload
-                                                                            .currentTime
-                                                                            .round()));
-                                                              fetchExercisesInLesson(
-                                                                      lesson.id)
-                                                                  .then(
-                                                                      (value) {
-                                                                setState(() {
-                                                                  exercisesInLessonModel =
-                                                                      value;
-                                                                  currentLessonId =
-                                                                      lesson.id;
-                                                                });
-                                                              });
-                                                            });
-                                                          }
-                                                        : null,
                                                   ),
                                                   trailing: Text(
                                                       "${lessonDuration.inHours > 0 ? "${lessonDuration.inHours}:" : ""}${lessonDuration.inHours > 0 ? (lessonDuration.inMinutes % 60).toString().padLeft(2, '0') : lessonDuration.inMinutes}:${(lessonDuration.inSeconds % 60).toString().padLeft(2, '0')}"),

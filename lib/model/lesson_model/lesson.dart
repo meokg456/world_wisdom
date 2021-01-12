@@ -1,3 +1,5 @@
+import 'package:world_wisdom/model/video_progress_model/video_progress_model.dart';
+
 class Lesson {
   Lesson({
     this.id,
@@ -32,6 +34,7 @@ class Lesson {
   bool isDeleted;
   DateTime createdAt;
   DateTime updatedAt;
+  VideoProgression currentProgress;
 
   factory Lesson.fromJson(Map<String, dynamic> json) => Lesson(
         id: json["id"],

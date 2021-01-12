@@ -47,7 +47,7 @@ class VideoProgression {
         videoUrl: json["videoUrl"],
         currentTime:
             json["currentTime"] == null ? 0 : json["currentTime"].toDouble(),
-        isFinish: json["isFinish"],
+        isFinish: json["isFinish"] == null ? false : json["isFinish"],
       );
 
   Map<String, dynamic> toJson() => {

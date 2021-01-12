@@ -14,6 +14,7 @@ class Course {
     this.formalityPoint,
     this.contentPoint,
     this.presentationPoint,
+    this.averagePoint,
     this.imageUrl,
     this.promoVidUrl,
     this.status,
@@ -41,6 +42,8 @@ class Course {
   double formalityPoint;
   double contentPoint;
   double presentationPoint;
+  double averagePoint;
+  double a;
   String imageUrl;
   String promoVidUrl;
   String status;
@@ -74,15 +77,24 @@ class Course {
             json["totalHours"] != null ? json["totalHours"].toDouble() : null,
         formalityPoint: json["formalityPoint"] != null
             ? json["formalityPoint"].toDouble()
-            : json["courseFormalityPoint"].toDouble(),
+            : json["courseFormalityPoint"] != null
+                ? json["courseFormalityPoint"].toDouble()
+                : 0,
         contentPoint: json["contentPoint"] != null
             ? json["contentPoint"].toDouble()
             : json["courseContentPoint"] != null
                 ? json["courseContentPoint"].toDouble()
-                : null,
+                : 0,
         presentationPoint: json["presentationPoint"] != null
             ? json["presentationPoint"].toDouble()
-            : json["coursePresentationPoint"].toDouble(),
+            : json["coursePresentationPoint"] != null
+                ? json["coursePresentationPoint"].toDouble()
+                : 0,
+        averagePoint: json["averagePoint"] != null
+            ? json["averagePoint"].toDouble()
+            : json["courseAveragePoint"] != null
+                ? json["courseAveragePoint"].toDouble()
+                : 0,
         imageUrl:
             json["imageUrl"] == null ? json["courseImage"] : json["imageUrl"],
         promoVidUrl: json["promoVidUrl"],
@@ -122,6 +134,7 @@ class Course {
         "formalityPoint": formalityPoint,
         "contentPoint": contentPoint,
         "presentationPoint": presentationPoint,
+        "averagePoint": averagePoint,
         "imageUrl": imageUrl,
         "promoVidUrl": promoVidUrl,
         "status": status,
