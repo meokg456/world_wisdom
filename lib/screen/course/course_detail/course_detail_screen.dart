@@ -99,7 +99,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           .indexWhere((element) => element.user.id == rating.user.id);
       setState(() {
         courseDetail.ratings.ratingList[index] = rating;
+        isUserRatingExpanded = false;
       });
+
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -1329,7 +1331,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                       ListTile(
                                           onTap: () {
                                             setState(() {
-                                              isUserRatingExpanded = true;
+                                              isUserRatingExpanded =
+                                                  !isUserRatingExpanded;
                                             });
                                           },
                                           contentPadding: EdgeInsets.all(0),
