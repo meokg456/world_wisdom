@@ -1,6 +1,6 @@
 import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/instructor_model/instructor.dart';
-import 'package:world_wisdom/model/rate_model/rating.dart';
+import 'package:world_wisdom/model/rate_model/rate_model.dart';
 import 'package:world_wisdom/model/section_model/section.dart';
 
 class CourseDetail {
@@ -58,7 +58,7 @@ class CourseDetail {
   String instructorId;
   int typeUploadVideoLesson;
   List<Section> section;
-  Ratings ratings;
+  RateModel ratings;
   Instructor instructor;
   List<Course> coursesLikeCategory;
 
@@ -104,8 +104,9 @@ class CourseDetail {
             ? null
             : List<Section>.from(
                 json["section"].map((x) => Section.fromJson(x))),
-        ratings:
-            json["ratings"] == null ? null : Ratings.fromJson(json["ratings"]),
+        ratings: json["ratings"] == null
+            ? null
+            : RateModel.fromJson(json["ratings"]),
         instructor: json["instructor"] == null
             ? null
             : Instructor.fromJson(json["instructor"]),

@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
@@ -19,6 +18,7 @@ import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/model/exercise_model/exercises_in_lesson_model.dart';
 import 'package:world_wisdom/model/lesson_model/last_watched_lesson_model.dart';
 import 'package:world_wisdom/model/lesson_model/lesson.dart';
+import 'package:world_wisdom/model/rate_model/rating.dart';
 import 'package:world_wisdom/model/section_model/section.dart';
 import 'package:world_wisdom/model/video_progress_model/video_progress_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
@@ -46,13 +46,15 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool isControlHided = false;
   bool isVideoEnded = false;
   bool isYoutubeFullScreen = false;
+  bool isRatingExpanded = false;
+  bool isUserRatingExpanded = false;
   double learnedHours = 0;
   String videoId;
   Duration youtubeLastWatchedPosition = Duration();
   ExercisesInLessonModel exercisesInLessonModel;
   Future<void> initialize;
   double playedRatio = 0.0;
-
+  Rating userRating;
   Timer videoControlTimer;
   YoutubePlayerController youtubePlayerController;
 
@@ -76,6 +78,46 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       return json['likeStatus'] == null ? false : json['likeStatus'];
     }
     return false;
+  }
+
+  void rateSubmit() async {
+    var response = await http.post("${Constants.apiUrl}/course/rating-course",
+        headers: {
+          "Authorization": "Bearer ${authenticationModel.token}",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(userRating.toJson()));
+    print(response.body);
+    if (response.statusCode == 200) {
+      Rating rating = Rating.fromJson(jsonDecode(response.body)["payload"]);
+      rating.user = authenticationModel.user;
+      rating.averagePoint = (rating.formalityPoint +
+              rating.contentPoint +
+              rating.presentationPoint) /
+          3;
+      int index = courseDetail.ratings.ratingList
+          .indexWhere((element) => element.user.id == rating.user.id);
+      setState(() {
+        courseDetail.ratings.ratingList[index] = rating;
+      });
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                insetPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                title: Text(S.of(context).thankYou),
+                content: Text(S.of(context).rateSuccess),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text(S.of(context).gotIt),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ));
+    }
   }
 
   Future<bool> likeCourse(String courseId) async {
@@ -335,7 +377,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 // the data it provides to limit the aspect ratio of the VideoPlayer.
                 return Container(
                   alignment: Alignment.center,
-                  margin: EdgeInsets.only(bottom: 10),
                   child: GestureDetector(
                     onTap: onScreenTap,
                     child: AspectRatio(
@@ -413,24 +454,28 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                           duration: Duration(milliseconds: 500),
                           child: Align(
                             alignment: Alignment.bottomRight,
-                            child: IconButton(
-                              icon: Icon(isFullScreen
-                                  ? Icons.fullscreen_exit
-                                  : Icons.fullscreen),
-                              onPressed: () {
-                                if (isControlHided) {
-                                  onScreenTap();
-                                  return;
-                                }
-                                if (isFullScreen) {
-                                  exitFullScreen();
-                                } else {
-                                  enterFullScreen();
-                                }
-                                setState(() {
-                                  isFullScreen = !isFullScreen;
-                                });
-                              },
+                            child: Container(
+                              margin: EdgeInsets.only(
+                                  bottom: isFullScreen ? 10 : 0),
+                              child: IconButton(
+                                icon: Icon(isFullScreen
+                                    ? Icons.fullscreen_exit
+                                    : Icons.fullscreen),
+                                onPressed: () {
+                                  if (isControlHided) {
+                                    onScreenTap();
+                                    return;
+                                  }
+                                  if (isFullScreen) {
+                                    exitFullScreen();
+                                  } else {
+                                    enterFullScreen();
+                                  }
+                                  setState(() {
+                                    isFullScreen = !isFullScreen;
+                                  });
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -440,6 +485,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: Container(
+                              margin: EdgeInsets.only(
+                                  bottom: isFullScreen ? 10 : 0),
                               height: 20,
                               child: SliderTheme(
                                 data: SliderThemeData(
@@ -510,6 +557,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           courseDetail = value;
           print("video url: ${courseDetail.promoVidUrl}");
         });
+        userRating = Rating(
+            formalityPoint: 0,
+            presentationPoint: 0,
+            contentPoint: 0,
+            courseId: courseDetail.id,
+            content: "");
         initVideoPlayer(courseDetail.promoVidUrl, Duration());
 
         getLastWatchedLesson(courseId).then((lastLessonModel) {
@@ -631,7 +684,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   videoId != null
                       ? Expanded(
                           child: Container(
-                            margin: EdgeInsets.only(bottom: 20),
                             child: YoutubePlayerBuilder(
                               player: YoutubePlayer(
                                 controller: youtubePlayerController,
@@ -707,13 +759,15 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                             ),
                           ),
                         )
-                      : Expanded(child: getVideoPlayerWidget()),
+                      : isYoutubeFullScreen || isFullScreen
+                          ? Expanded(child: getVideoPlayerWidget())
+                          : getVideoPlayerWidget(),
                   isYoutubeFullScreen || isFullScreen
                       ? SizedBox()
                       : Expanded(
                           child: ListView(
                             padding: EdgeInsets.only(
-                                left: 20, top: 0, right: 20, bottom: 20),
+                                left: 20, top: 20, right: 20, bottom: 100),
                             children: [
                               Text(
                                 courseDetail.title,
@@ -894,7 +948,15 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                           child: Column(
                                             children: courseDetail.learnWhat
                                                 .map((skill) {
-                                              return Text("- $skill");
+                                              return ListTile(
+                                                  contentPadding:
+                                                      EdgeInsets.all(0),
+                                                  dense: true,
+                                                  leading: Icon(
+                                                    Icons.done,
+                                                    color: Colors.green,
+                                                  ),
+                                                  title: Text("- $skill"));
                                             }).toList(),
                                           ),
                                         ),
@@ -928,7 +990,15 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                           child: Column(
                                             children: courseDetail.requirement
                                                 .map((skill) {
-                                              return Text("- $skill");
+                                              return ListTile(
+                                                  contentPadding:
+                                                      EdgeInsets.all(0),
+                                                  dense: true,
+                                                  leading: Icon(
+                                                    Icons.done,
+                                                    color: Colors.green,
+                                                  ),
+                                                  title: Text("$skill"));
                                             }).toList(),
                                           ),
                                         ),
@@ -1149,7 +1219,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                 return ListTile(
                                                   dense: true,
                                                   leading: Icon(
-                                                      Icons.article_outlined),
+                                                    Icons.article_outlined,
+                                                    color: Theme.of(context)
+                                                        .accentColor,
+                                                  ),
                                                   title: Text(exercise.title),
                                                 );
                                               }).toList(),
@@ -1159,6 +1232,280 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                     ),
                               SizedBox(
                                 height: 20,
+                              ),
+                              ExpansionPanelList(
+                                expansionCallback:
+                                    (int index, bool isExpanded) {
+                                  setState(() {
+                                    isRatingExpanded = !isRatingExpanded;
+                                  });
+                                },
+                                children: [
+                                  ExpansionPanel(
+                                      headerBuilder: (BuildContext context,
+                                          bool isExpanded) {
+                                        return ListTile(
+                                          leading: Icon(
+                                            Icons.rate_review,
+                                            color:
+                                                Theme.of(context).accentColor,
+                                          ),
+                                          title: Text(S.of(context).rating),
+                                        );
+                                      },
+                                      body: Column(
+                                        children: courseDetail
+                                            .ratings.ratingList
+                                            .map((rating) {
+                                          return Column(
+                                            children: [
+                                              Divider(
+                                                thickness: 1,
+                                              ),
+                                              ListTile(
+                                                dense: true,
+                                                title: ListTile(
+                                                  contentPadding:
+                                                      EdgeInsets.all(0),
+                                                  dense: true,
+                                                  leading: CircleAvatar(
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                            rating.user.avatar),
+                                                  ),
+                                                  title: ListTile(
+                                                      trailing: Text(
+                                                          "${DateFormat.yMMMMd().format(rating.createdAt.toLocal())}"),
+                                                      contentPadding:
+                                                          EdgeInsets.all(0),
+                                                      title: Text(
+                                                          rating.user.name)),
+                                                  subtitle: RatingBar.builder(
+                                                    initialRating:
+                                                        rating.averagePoint,
+                                                    minRating: 1,
+                                                    direction: Axis.horizontal,
+                                                    allowHalfRating: true,
+                                                    itemCount: 5,
+                                                    itemSize: 12,
+                                                    itemPadding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 1),
+                                                    itemBuilder: (context, _) =>
+                                                        Icon(
+                                                      Icons.star,
+                                                      color: Colors.amber,
+                                                    ),
+                                                    ignoreGestures: true,
+                                                    onRatingUpdate:
+                                                        (double value) {},
+                                                  ),
+                                                ),
+                                                subtitle: ListTile(
+                                                  contentPadding:
+                                                      EdgeInsets.all(0),
+                                                  title: Text(
+                                                    rating.content,
+                                                    textAlign: TextAlign.left,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        }).toList(),
+                                      ),
+                                      isExpanded: isRatingExpanded)
+                                ],
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Card(
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 10, horizontal: 20),
+                                  child: Column(
+                                    children: [
+                                      ListTile(
+                                          onTap: () {
+                                            setState(() {
+                                              isUserRatingExpanded = true;
+                                            });
+                                          },
+                                          contentPadding: EdgeInsets.all(0),
+                                          leading: Icon(
+                                            Icons.star_rate_rounded,
+                                            color: Colors.amber,
+                                          ),
+                                          title: Text(S.of(context).leaveRate)),
+                                      !isUserRatingExpanded
+                                          ? SizedBox()
+                                          : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Icon(Icons.article_outlined,
+                                                    color: Theme.of(context)
+                                                        .accentColor),
+                                                Expanded(
+                                                  child: Container(
+                                                    margin:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 10),
+                                                    child: Text(
+                                                        "${S.of(context).contentPoint}:"),
+                                                  ),
+                                                ),
+                                                RatingBar.builder(
+                                                  initialRating: 0,
+                                                  minRating: 1,
+                                                  direction: Axis.horizontal,
+                                                  allowHalfRating: true,
+                                                  itemCount: 5,
+                                                  itemSize: 24,
+                                                  itemPadding:
+                                                      EdgeInsets.symmetric(
+                                                          horizontal: 1),
+                                                  itemBuilder: (context, _) =>
+                                                      Icon(
+                                                    Icons.star,
+                                                    color: Colors.amber,
+                                                  ),
+                                                  onRatingUpdate:
+                                                      (double value) {
+                                                    userRating.contentPoint =
+                                                        value;
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                      !isUserRatingExpanded
+                                          ? SizedBox()
+                                          : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Icon(
+                                                    Icons
+                                                        .add_to_photos_outlined,
+                                                    color: Theme.of(context)
+                                                        .accentColor),
+                                                Expanded(
+                                                  child: Container(
+                                                    margin:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 10),
+                                                    child: Text(
+                                                        "${S.of(context).formalityPoint}:"),
+                                                  ),
+                                                ),
+                                                RatingBar.builder(
+                                                  initialRating: 0,
+                                                  minRating: 1,
+                                                  direction: Axis.horizontal,
+                                                  allowHalfRating: true,
+                                                  itemCount: 5,
+                                                  itemSize: 24,
+                                                  itemPadding:
+                                                      EdgeInsets.symmetric(
+                                                          horizontal: 1),
+                                                  itemBuilder: (context, _) =>
+                                                      Icon(
+                                                    Icons.star,
+                                                    color: Colors.amber,
+                                                  ),
+                                                  onRatingUpdate:
+                                                      (double value) {
+                                                    userRating.formalityPoint =
+                                                        value;
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                      !isUserRatingExpanded
+                                          ? SizedBox()
+                                          : Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Icon(Icons.present_to_all,
+                                                    color: Theme.of(context)
+                                                        .accentColor),
+                                                Expanded(
+                                                  child: Container(
+                                                    margin:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 10),
+                                                    child: Text(
+                                                        "${S.of(context).presentationPoint}:"),
+                                                  ),
+                                                ),
+                                                RatingBar.builder(
+                                                  initialRating: 0,
+                                                  minRating: 1,
+                                                  direction: Axis.horizontal,
+                                                  allowHalfRating: true,
+                                                  itemCount: 5,
+                                                  itemSize: 24,
+                                                  itemPadding:
+                                                      EdgeInsets.symmetric(
+                                                          horizontal: 1),
+                                                  itemBuilder: (context, _) =>
+                                                      Icon(
+                                                    Icons.star,
+                                                    color: Colors.amber,
+                                                  ),
+                                                  onRatingUpdate:
+                                                      (double value) {
+                                                    userRating
+                                                            .presentationPoint =
+                                                        value;
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                      !isUserRatingExpanded
+                                          ? SizedBox()
+                                          : Container(
+                                              margin: EdgeInsets.symmetric(
+                                                  vertical: 10),
+                                              child: TextField(
+                                                onChanged: (text) {
+                                                  userRating.content = text;
+                                                },
+                                                decoration: InputDecoration(
+                                                    hintText:
+                                                        "${S.of(context).comments}...",
+                                                    border:
+                                                        OutlineInputBorder()),
+                                              ),
+                                            ),
+                                      !isUserRatingExpanded
+                                          ? SizedBox()
+                                          : Align(
+                                              alignment: Alignment.bottomRight,
+                                              child: ElevatedButton(
+                                                  onPressed: () {
+                                                    rateSubmit();
+                                                  },
+                                                  child:
+                                                      Text(S.of(context).rate)),
+                                            ),
+                                      !isUserRatingExpanded
+                                          ? SizedBox()
+                                          : IconButton(
+                                              icon: Icon(Icons.arrow_drop_up),
+                                              onPressed: () {
+                                                setState(() {
+                                                  isUserRatingExpanded = false;
+                                                });
+                                              })
+                                    ],
+                                  ),
+                                ),
                               ),
                               Text(
                                 S.of(context).sameCategory,

@@ -69,5 +69,15 @@
   "appHint" : "Online courses\\n for students",
   "all" : "All",
   "exercise": "Exercises",
-  "registerCourseConfirmation" : "Do you want to register this course?"
+  "registerCourseConfirmation" : "Do you want to register this course?",
+  "rating" : "Rate from students",
+  "leaveRate" : "Leave a rate",
+  "comments" : "Comments",
+  "contentPoint" : "Content point",
+  "presentationPoint" : "Presentation Point",
+  "formalityPoint" : "Formality Point",
+  "rate" : "Rate",
+  "rateSuccess" : "Rated successfully!",
+  "thankYou": "Thank you :)",
+  "gotIt": "Got it!"
 }

@@ -1,22 +1,52 @@
-import 'package:world_wisdom/model/rate_model/rating_list.dart';
+import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 
-class Ratings {
-  Ratings({
-    this.ratingList,
-    this.stars,
+class Rating {
+  Rating({
+    this.id,
+    this.userId,
+    this.courseId,
+    this.formalityPoint,
+    this.contentPoint,
+    this.presentationPoint,
+    this.content,
+    this.createdAt,
+    this.updatedAt,
+    this.user,
+    this.averagePoint,
   });
 
-  List<RatingList> ratingList;
-  List<int> stars;
+  String id;
+  String userId;
+  String courseId;
+  double formalityPoint;
+  double contentPoint;
+  double presentationPoint;
+  String content;
+  DateTime createdAt;
+  DateTime updatedAt;
+  User user;
+  double averagePoint;
 
-  factory Ratings.fromJson(Map<String, dynamic> json) => Ratings(
-        ratingList: List<RatingList>.from(
-            json["ratingList"].map((x) => RatingList.fromJson(x))),
-        stars: List<int>.from(json["stars"].map((x) => x)),
+  factory Rating.fromJson(Map<String, dynamic> json) => Rating(
+        id: json["id"],
+        userId: json["userId"],
+        courseId: json["courseId"],
+        formalityPoint: json["formalityPoint"].toDouble(),
+        contentPoint: json["contentPoint"].toDouble(),
+        presentationPoint: json["presentationPoint"].toDouble(),
+        content: json["content"],
+        createdAt: DateTime.parse(json["createdAt"]),
+        updatedAt: DateTime.parse(json["updatedAt"]),
+        user: json["user"] == null ? null : User.fromJson(json["user"]),
+        averagePoint:
+            json["averagePoint"] == null ? 0 : json["averagePoint"].toDouble(),
       );
 
   Map<String, dynamic> toJson() => {
-        "ratingList": List<dynamic>.from(ratingList.map((x) => x.toJson())),
-        "stars": List<dynamic>.from(stars.map((x) => x)),
+        "courseId": courseId,
+        "formalityPoint": formalityPoint,
+        "contentPoint": contentPoint,
+        "presentationPoint": presentationPoint,
+        "content": content,
       };
 }

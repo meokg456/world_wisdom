@@ -744,6 +744,106 @@ class S {
       args: [],
     );
   }
+
+  /// `Rate from students`
+  String get rating {
+    return Intl.message(
+      'Rate from students',
+      name: 'rating',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Leave a rate`
+  String get leaveRate {
+    return Intl.message(
+      'Leave a rate',
+      name: 'leaveRate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Comments`
+  String get comments {
+    return Intl.message(
+      'Comments',
+      name: 'comments',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Content point`
+  String get contentPoint {
+    return Intl.message(
+      'Content point',
+      name: 'contentPoint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Presentation Point`
+  String get presentationPoint {
+    return Intl.message(
+      'Presentation Point',
+      name: 'presentationPoint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Formality Point`
+  String get formalityPoint {
+    return Intl.message(
+      'Formality Point',
+      name: 'formalityPoint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rate`
+  String get rate {
+    return Intl.message(
+      'Rate',
+      name: 'rate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rated successfully!`
+  String get rateSuccess {
+    return Intl.message(
+      'Rated successfully!',
+      name: 'rateSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Thank you :)`
+  String get thankYou {
+    return Intl.message(
+      'Thank you :)',
+      name: 'thankYou',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Got it!`
+  String get gotIt {
+    return Intl.message(
+      'Got it!',
+      name: 'gotIt',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
