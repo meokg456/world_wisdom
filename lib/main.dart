@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
+import 'package:world_wisdom/model/course_model/downloaded_courses_model.dart';
 import 'package:world_wisdom/screen/authentication/forget_password/forget_password_screen.dart';
 import 'package:world_wisdom/screen/authentication/login_screen/login_screen.dart';
 import 'package:world_wisdom/screen/authentication/register/register_screen.dart';
@@ -107,6 +108,7 @@ class _WorldWisdomState extends State<WorldWisdom> {
         ChangeNotifierProvider(create: (context) => AuthenticationModel()),
         ChangeNotifierProvider(create: (context) => AppMode()),
         ChangeNotifierProvider(create: (context) => CourseModel(courses: [])),
+        ChangeNotifierProvider(create: (context) => DownloadedCoursesModel()),
       ],
       child: WorldWisdomApp(),
     );

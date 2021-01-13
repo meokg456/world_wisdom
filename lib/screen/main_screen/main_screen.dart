@@ -43,6 +43,7 @@ class _MainScreenState extends State<MainScreen> {
   Future<bool> onPop() async {
     if (Keys.mainNavigatorKey.currentState.canPop()) {
       Keys.mainNavigatorKey.currentState.maybePop();
+
       return false;
     }
     return true;

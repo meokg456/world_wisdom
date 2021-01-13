@@ -28,7 +28,7 @@ class CourseDetail {
     this.updatedAt,
     this.instructorId,
     this.typeUploadVideoLesson,
-    this.section,
+    this.sections,
     this.ratings,
     this.instructor,
     this.coursesLikeCategory,
@@ -57,7 +57,7 @@ class CourseDetail {
   DateTime updatedAt;
   String instructorId;
   int typeUploadVideoLesson;
-  List<Section> section;
+  List<Section> sections;
   RateModel ratings;
   Instructor instructor;
   List<Course> coursesLikeCategory;
@@ -100,7 +100,7 @@ class CourseDetail {
         updatedAt: DateTime.parse(json["updatedAt"]),
         instructorId: json["instructorId"],
         typeUploadVideoLesson: json["typeUploadVideoLesson"],
-        section: json["section"] == null
+        sections: json["section"] == null
             ? null
             : List<Section>.from(
                 json["section"].map((x) => Section.fromJson(x))),
@@ -139,9 +139,9 @@ class CourseDetail {
         "updatedAt": updatedAt.toIso8601String(),
         "instructorId": instructorId,
         "typeUploadVideoLesson": typeUploadVideoLesson,
-        "section": section == null
+        "section": sections == null
             ? null
-            : List<dynamic>.from(section.map((x) => x.toJson())),
+            : List<dynamic>.from(sections.map((x) => x.toJson())),
         "ratings": ratings == null ? null : ratings.toJson(),
         "averagePoint": averagePoint == null ? null : averagePoint,
         "instructor": instructor == null ? null : instructor.toJson(),

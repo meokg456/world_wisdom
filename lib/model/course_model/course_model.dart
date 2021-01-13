@@ -13,6 +13,11 @@ class CourseModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void remove(String id) {
+    courses.removeWhere((course) => course.id == id);
+    notifyListeners();
+  }
+
   void setCourseModel(CourseModel courseModel) {
     this.courses = courseModel.courses;
     notifyListeners();

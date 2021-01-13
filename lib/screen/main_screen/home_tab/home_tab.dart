@@ -1,9 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:intl/intl.dart';
+
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
+import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:world_wisdom/screen/course/course_list/course_list_data.dart';
@@ -12,6 +16,7 @@ import 'package:world_wisdom/screen/main_screen/main_app_bar/main_app_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list.dart';
+
 import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list_header.dart';
 
 class HomeTab extends StatefulWidget {
@@ -25,6 +30,7 @@ class _HomeTabState extends State<HomeTab> {
   CourseModel bestCourse = CourseModel(courses: []);
   CourseModel recommendedForYouCourse = CourseModel(courses: []);
   CourseModel favoriteCourse = CourseModel(courses: []);
+  Course selectedCourse;
   bool isLoaded = false;
 
   @override
@@ -87,6 +93,10 @@ class _HomeTabState extends State<HomeTab> {
       return CourseModel.fromJson(jsonDecode(response.body));
     }
     return CourseModel(courses: []);
+  }
+
+  void onCourseDetailTap(Course course) async {
+    setState(() {});
   }
 
   @override

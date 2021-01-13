@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DatabaseConnector {
   static Database _database;
-  static void initDatabase() async {
+  static Future<void> _initDatabase() async {
     _database = await openDatabase(
       join(await getDatabasesPath(), 'courses_database.db'),
       onCreate: (db, version) {
@@ -20,7 +20,10 @@ class DatabaseConnector {
     );
   }
 
-  static Database get database {
+  static Future<Database> get database async {
+    if (_database == null) {
+      await _initDatabase();
+    }
     return _database;
   }
 }

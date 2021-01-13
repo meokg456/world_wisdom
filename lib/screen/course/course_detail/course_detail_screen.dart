@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:share/share.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:video_player/video_player.dart';
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
@@ -23,6 +28,7 @@ import 'package:world_wisdom/model/section_model/section.dart';
 import 'package:world_wisdom/model/video_progress_model/video_progress_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:world_wisdom/screen/screen_mode/app_mode.dart';
+import 'package:world_wisdom/sql_lite/database_connector.dart';
 import 'package:world_wisdom/widgets/custom_rounded_rectangle_track_shape/custom_rounded_rectangle_track_shape.dart';
 import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list.dart';
 import 'package:world_wisdom/widgets/rating/horizontal_rating_statistic_item.dart';
@@ -35,9 +41,11 @@ class CourseDetailScreen extends StatefulWidget {
 }
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
+  Database database;
   VideoPlayerController videoPlayerController;
   AuthenticationModel authenticationModel;
   bool isLoading = true;
+  String courseId;
   CourseDetail courseDetail;
   Lesson currentLesson;
   int descriptionMaxLines = 2;
@@ -48,10 +56,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool isFullScreen = false;
   bool isControlHided = false;
   bool isVideoEnded = false;
-  bool isYoutubeFullScreen = false;
   bool isRatingExpanded = false;
   bool isUserRatingExpanded = false;
+  double downloadRatio = 0;
+  //0 - not downloaded yet
+  //1 - downloaded
+  //2 - downloading
   bool isDownloaded = false;
+  int totalVideos = 0;
   double learnedHours = 0;
   Future<void> initialize;
   double playedRatio = 0.0;
@@ -59,26 +71,80 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   Timer videoControlTimer;
   YoutubePlayerController youtubePlayerController;
 
-  Future<CourseDetail> fetchCourseData(String courseId) async {
+  void loadData() {
+    fetchCourseData(courseId);
+    userRating = Rating(
+        formalityPoint: 0,
+        presentationPoint: 0,
+        contentPoint: 0,
+        courseId: courseId,
+        content: "");
+    checkOwnCourse(courseId);
+    checkLikeStatus(courseId);
+  }
+
+  void fetchCourseData(String courseId) async {
+    setState(() {
+      isLoading = true;
+    });
     var response = await http.get(
         "${Constants.apiUrl}/course/get-course-detail/$courseId/${authenticationModel.user == null ? "null" : authenticationModel.user.id}");
     print(response.body);
     if (response.statusCode == 200) {
-      return CourseDetailModel.fromJson(jsonDecode(response.body)).payload;
+      courseDetail =
+          CourseDetailModel.fromJson(jsonDecode(response.body)).payload;
+      if (!isRegistered)
+        loadVideoPlayer(courseDetail.promoVidUrl, Duration());
+      else {
+        LastWatchedLessonModel lastLessonModel =
+            await getLastWatchedLesson(courseId);
+        learnedHours = 0;
+        for (int i = 0; i < courseDetail.sections.length; i++) {
+          Section section = courseDetail.sections[i];
+          for (int j = 0; j < section.lessons.length; j++) {
+            Lesson lesson = section.lessons[j];
+
+            VideoProgressModel videoProgressModel =
+                await getVideoInfo(courseId, lesson.id);
+
+            lesson.currentProgress = videoProgressModel.payload;
+            if (lesson.currentProgress.isFinish) {
+              learnedHours += lesson.hours;
+            } else {
+              learnedHours += lesson.currentProgress.currentTime / 3600;
+            }
+            if (lastLessonModel.payload.lessonId == lesson.id) {
+              section.isExpanded = true;
+              selectLesson(lesson);
+            }
+
+            ExercisesInLessonModel exercisesInLessonModel =
+                await fetchExercisesInLesson(lesson.id);
+            lesson.exercises = exercisesInLessonModel.payload.exercises;
+          }
+        }
+      }
+    } else {
+      videoControlTimer.cancel();
+      Navigator.of(context).pop();
+      return;
     }
-    return null;
+    setState(() {
+      isLoading = false;
+    });
   }
 
-  Future<bool> getLikeStatus(String courseId) async {
+  void checkLikeStatus(String courseId) async {
     var response = await http.get(
         "${Constants.apiUrl}/user/get-course-like-status/$courseId",
         headers: {"Authorization": "Bearer ${authenticationModel.token}"});
     print(response.body);
     if (response.statusCode == 200) {
       Map json = jsonDecode(response.body);
-      return json['likeStatus'] == null ? false : json['likeStatus'];
+      setState(() {
+        isLiked = json['likeStatus'] == null ? false : json['likeStatus'];
+      });
     }
-    return false;
   }
 
   void rateSubmit() async {
@@ -90,18 +156,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         body: jsonEncode(userRating.toRateSubmitJson()));
     print(response.body);
     if (response.statusCode == 200) {
-      Rating rating = Rating.fromJson(jsonDecode(response.body)["payload"]);
-      rating.user = authenticationModel.user;
-      rating.averagePoint = (rating.formalityPoint +
-              rating.contentPoint +
-              rating.presentationPoint) /
-          3;
-      int index = courseDetail.ratings.ratingList
-          .indexWhere((element) => element.user.id == rating.user.id);
-      setState(() {
-        if (index != -1) courseDetail.ratings.ratingList[index] = rating;
-        isUserRatingExpanded = false;
-      });
+      var response = await http.get(
+          "${Constants.apiUrl}/course/get-course-detail/$courseId/${authenticationModel.user == null ? "null" : authenticationModel.user.id}");
+      print(response.body);
+      if (response.statusCode == 200) {
+        CourseDetail data =
+            CourseDetailModel.fromJson(jsonDecode(response.body)).payload;
+        setState(() {
+          courseDetail.ratings = data.ratings;
+          courseDetail.ratedNumber = data.ratedNumber;
+          courseDetail.contentPoint = data.contentPoint;
+          courseDetail.formalityPoint = data.formalityPoint;
+          courseDetail.presentationPoint = data.presentationPoint;
+          courseDetail.averagePoint = data.averagePoint;
+          isUserRatingExpanded = false;
+        });
+      }
 
       showDialog(
           context: context,
@@ -182,15 +252,18 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return null;
   }
 
-  Future<CheckOwnCourseModel> checkOwnCourse(String courseId) async {
+  void checkOwnCourse(String courseId) async {
     var response = await http.get(
         "${Constants.apiUrl}/user/check-own-course/$courseId",
         headers: {"Authorization": "Bearer ${authenticationModel.token}"});
     print(response.body);
     if (response.statusCode == 200) {
-      return CheckOwnCourseModel.fromJson(jsonDecode(response.body));
+      setState(() {
+        isRegistered = CheckOwnCourseModel.fromJson(jsonDecode(response.body))
+            .payload
+            .isUserOwnCourse;
+      });
     }
-    return null;
   }
 
   Future<VideoProgressModel> getVideoInfo(
@@ -207,25 +280,66 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return null;
   }
 
+  void downloadVideo(String url, String lessonId) async {
+    if (!url.contains(".mp4")) return;
+    Dio dio = Dio();
+    totalVideos++;
+
+    try {
+      var dir = await getApplicationDocumentsDirectory();
+      database.insert("videos",
+          {"lessonId": lessonId, "videoPath": "${dir.path}/$lessonId.mp4"});
+      await dio.download(url, "${dir.path}/$lessonId.mp4",
+          onReceiveProgress: (rec, total) {
+        setState(() {
+          downloadRatio = rec / total / totalVideos;
+          if (downloadRatio == 1) {
+            setState(() {
+              isDownloaded = true;
+            });
+          }
+        });
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void downloadCourse() {
+    database.insert("courses",
+        {"id": courseDetail.id, "data": jsonEncode(courseDetail.toJson())});
+    courseDetail.sections.forEach((section) {
+      section.lessons.forEach((lesson) {
+        downloadVideo(lesson.currentProgress.videoUrl, lesson.id);
+      });
+    });
+  }
+
   @override
   void initState() {
+    super.initState();
     videoControlTimer = Timer(Duration(seconds: 2), () {
       setState(() {
         if (videoPlayerController != null) if (videoPlayerController
             .value.isPlaying) isControlHided = true;
       });
     });
+
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
 
-    super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((timeStamp) async {
+      database = await DatabaseConnector.database;
+      loadData();
+    });
   }
 
   @override
   void dispose() {
-    videoPlayerController.dispose();
+    if (videoPlayerController != null) videoPlayerController.dispose();
+    if (youtubePlayerController != null) youtubePlayerController.dispose();
     super.dispose();
   }
 
@@ -237,8 +351,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void updateCurrentVideoPosition(double currentTime) async {
-    if ((currentLesson.id != null &&
-            videoPlayerController != null &&
+    if ((videoPlayerController != null &&
             videoPlayerController.value.duration != null) ||
         (isYoutubeVideo && currentLesson.id != null)) {
       var response = await http.put(
@@ -264,35 +377,26 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void updateVideoPlayer() {
-    if (videoPlayerController.value.position ==
-        videoPlayerController.value.duration) {
+    double ratio = videoPlayerController.value.position.inSeconds /
+        videoPlayerController.value.duration.inSeconds;
+    if (ratio == 1) {
       videoControlTimer.cancel();
       setState(() {
         isControlHided = false;
         isVideoEnded = true;
       });
-      finishLesson();
+      if (isRegistered) finishLesson();
     }
-    double ratio = videoPlayerController.value.position.inSeconds /
-        videoPlayerController.value.duration.inSeconds;
-    if (ratio > 0.9) {
-      Lesson currentLesson;
-      courseDetail.section.forEach((section) {
-        section.lesson.forEach((lesson) {
-          if (currentLesson.id == lesson.id) {
-            currentLesson = lesson;
-            return;
-          }
+    if (isRegistered) {
+      if (ratio > 0.9) {
+        setState(() {
+          currentLesson.currentProgress.isFinish = true;
         });
-      });
-      setState(() {
-        currentLesson.currentProgress.isFinish = true;
-      });
-      finishLesson();
+        finishLesson();
+      }
+      updateCurrentVideoPosition(
+          videoPlayerController.value.position.inSeconds.toDouble());
     }
-    print(ratio);
-    updateCurrentVideoPosition(
-        videoPlayerController.value.position.inSeconds.toDouble());
     setState(() {
       playedRatio = ratio;
     });
@@ -306,12 +410,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
     setState(() {
       videoPlayerController = VideoPlayerController.network(videoUrl);
-      initialize = videoPlayerController.initialize().whenComplete(() {
-        if (videoPlayerController.value.duration != null) {
-          videoPlayerController.addListener(updateVideoPlayer);
-          videoPlayerController.seekTo(start);
-        }
-      });
+      try {
+        initialize = videoPlayerController.initialize().whenComplete(() {
+          if (videoPlayerController.value.duration != null) {
+            videoPlayerController.addListener(updateVideoPlayer);
+            videoPlayerController.seekTo(start);
+          }
+        });
+      } on Error catch (error) {
+        print(error);
+      }
       isFullScreen = false;
       isControlHided = false;
       isVideoEnded = false;
@@ -324,15 +432,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     if (youtubePlayerController.value.position.inSeconds /
             youtubePlayerController.metadata.duration.inSeconds >
         0.9) {
-      Lesson currentLesson;
-      courseDetail.section.forEach((section) {
-        section.lesson.forEach((lesson) {
-          if (currentLesson.id == lesson.id) {
-            currentLesson = lesson;
-            return;
-          }
-        });
-      });
       setState(() {
         currentLesson.currentProgress.isFinish = true;
       });
@@ -348,12 +447,12 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       setState(() {
         isYoutubeVideo = true;
       });
-      return;
-    }
-    setState(() {
+    } else {
       youtubePlayerController = YoutubePlayerController(
           initialVideoId: videoId,
           flags: YoutubePlayerFlags(startAt: start.inSeconds));
+    }
+    setState(() {
       isYoutubeVideo = true;
     });
   }
@@ -364,6 +463,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    setState(() {
+      isFullScreen = true;
+    });
     screenMode.setFullScreen(true);
   }
 
@@ -373,42 +475,30 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+    setState(() {
+      isFullScreen = false;
+    });
     screenMode.setFullScreen(false);
   }
 
   void selectLesson(Lesson lesson) {
-    getVideoInfo(courseDetail.id, lesson.id).then((videoProgressModel) {
-      if (videoProgressModel == null) {
-        return;
-      }
-      String videoId =
-          YoutubePlayer.convertUrlToId(videoProgressModel.payload.videoUrl);
+    String videoId =
+        YoutubePlayer.convertUrlToId(lesson.currentProgress.videoUrl);
 
-      if (videoId != null) {
-        loadYoutubePlayer(videoId,
-            Duration(seconds: videoProgressModel.payload.currentTime.round()));
-      } else
-        loadVideoPlayer(videoProgressModel.payload.videoUrl,
-            Duration(seconds: videoProgressModel.payload.currentTime.round()));
-      fetchExercisesInLesson(lesson.id).then((value) {
-        setState(() {
-          currentLesson = lesson;
-        });
-      });
+    if (videoId != null) {
+      loadYoutubePlayer(videoId,
+          Duration(seconds: lesson.currentProgress.currentTime.round()));
+    } else
+      loadVideoPlayer(lesson.currentProgress.videoUrl,
+          Duration(seconds: lesson.currentProgress.currentTime.round()));
+    setState(() {
+      currentLesson = lesson;
     });
   }
 
   Future<bool> onPop() async {
     if (isFullScreen) {
-      setState(() {
-        isFullScreen = false;
-      });
-      AppMode screenMode = Provider.of<AppMode>(context, listen: false);
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-      screenMode.setFullScreen(false);
+      exitFullScreen();
       return false;
     }
     return true;
@@ -429,362 +519,268 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   Widget getVideoPlayerWidget() {
-    return courseDetail.promoVidUrl == null
-        ? Container(
-            height: 220, child: Center(child: CircularProgressIndicator()))
-        : FutureBuilder(
-            future: initialize,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  videoPlayerController.value.duration != null) {
-                // If the VideoPlayerController has finished initialization, use
-                // the data it provides to limit the aspect ratio of the VideoPlayer.
-                return Container(
-                  alignment: Alignment.center,
-                  child: GestureDetector(
-                    onTap: onScreenTap,
-                    child: AspectRatio(
-                      aspectRatio: videoPlayerController.value.aspectRatio,
-                      // Use the VideoPlayer widget to display the video.
-                      child: Stack(children: [
-                        VideoPlayer(videoPlayerController),
-                        AnimatedOpacity(
-                          opacity: !isControlHided ? 1.0 : 0.0,
-                          duration: Duration(milliseconds: 500),
-                          child: Container(
-                            color: Colors.black38,
-                          ),
-                        ),
-                        AnimatedOpacity(
-                          opacity: !isControlHided ? 1.0 : 0.0,
-                          duration: Duration(milliseconds: 500),
-                          child: Center(
-                            child: IconButton(
-                              icon: Icon(
-                                isVideoEnded
-                                    ? Icons.replay
-                                    : videoPlayerController.value.isPlaying
-                                        ? Icons.pause
-                                        : Icons.play_arrow,
-                                size: 40,
-                              ),
-                              onPressed: () {
-                                if (isControlHided) {
-                                  onScreenTap();
-                                  return;
-                                }
-                                videoControlTimer.cancel();
-                                if (isVideoEnded) {
-                                  videoPlayerController
-                                      .seekTo(Duration())
-                                      .whenComplete(() {
-                                    setState(() {
-                                      isVideoEnded = false;
-                                    });
-                                  });
-                                }
-                                if (videoPlayerController.value.isPlaying) {
-                                  videoPlayerController.pause();
-                                } else {
-                                  videoPlayerController.play();
-                                  videoControlTimer =
-                                      Timer(Duration(seconds: 2), () {
-                                    if (videoPlayerController.value.isPlaying)
-                                      setState(() {
-                                        isControlHided = true;
-                                      });
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                        AnimatedOpacity(
-                          opacity: !isControlHided ? 1.0 : 0.0,
-                          duration: Duration(milliseconds: 500),
-                          child: Container(
-                            margin: EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 20),
-                            child: Align(
-                              alignment: Alignment.bottomLeft,
-                              child: Text(
-                                "${videoPlayerController.value.position.inHours > 0 ? "${videoPlayerController.value.position.inHours}:" : ""}${videoPlayerController.value.position.inHours > 0 ? (videoPlayerController.value.position.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.position.inMinutes}:${(videoPlayerController.value.position.inSeconds % 60).toString().padLeft(2, '0')} / ${videoPlayerController.value.duration.inHours > 0 ? "${videoPlayerController.value.duration.inHours}:" : ""}${videoPlayerController.value.duration.inHours > 0 ? (videoPlayerController.value.duration.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.duration.inMinutes}:${(videoPlayerController.value.duration.inSeconds % 60).toString().padLeft(2, '0')}",
-                              ),
-                            ),
-                          ),
-                        ),
-                        AnimatedOpacity(
-                          opacity: !isControlHided ? 1.0 : 0.0,
-                          duration: Duration(milliseconds: 500),
-                          child: Align(
-                            alignment: Alignment.bottomRight,
-                            child: Container(
-                              margin: EdgeInsets.only(
-                                  bottom: isFullScreen ? 10 : 0),
-                              child: IconButton(
-                                icon: Icon(isFullScreen
-                                    ? Icons.fullscreen_exit
-                                    : Icons.fullscreen),
-                                onPressed: () {
-                                  if (isControlHided) {
-                                    onScreenTap();
-                                    return;
-                                  }
-                                  if (isFullScreen) {
-                                    exitFullScreen();
-                                  } else {
-                                    enterFullScreen();
-                                  }
-                                  setState(() {
-                                    isFullScreen = !isFullScreen;
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                        AnimatedOpacity(
-                          opacity: !isControlHided ? 1.0 : 0.0,
-                          duration: Duration(milliseconds: 500),
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              margin: EdgeInsets.only(
-                                  bottom: isFullScreen ? 10 : 0),
-                              height: 20,
-                              child: SliderTheme(
-                                data: SliderThemeData(
-                                  overlayShape:
-                                      RoundSliderOverlayShape(overlayRadius: 0),
-                                  trackShape:
-                                      CustomRoundedRectSliderTrackShape(),
-                                ),
-                                child: Slider(
-                                  onChanged: (double value) {
-                                    if (isControlHided) {
-                                      onScreenTap();
-                                      return;
-                                    }
-                                    Duration seekDuration = Duration(
-                                        seconds: (value *
-                                                videoPlayerController
-                                                    .value.duration.inSeconds)
-                                            .round());
-                                    videoPlayerController
-                                        .seekTo(seekDuration)
-                                        .whenComplete(() {
-                                      setState(() {
-                                        playedRatio = value;
-                                        isVideoEnded = false;
-                                      });
-                                      videoPlayerController.play();
-                                      videoControlTimer =
-                                          Timer(Duration(seconds: 2), () {
-                                        setState(() {
-                                          if (videoPlayerController.value
-                                              .isPlaying) isControlHided = true;
-                                        });
-                                      });
-                                    });
-                                  },
-                                  value: playedRatio,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]),
+    return FutureBuilder(
+      future: initialize,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            videoPlayerController.value.duration != null) {
+          // If the VideoPlayerController has finished initialization, use
+          // the data it provides to limit the aspect ratio of the VideoPlayer.
+          return Container(
+            alignment: Alignment.center,
+            child: GestureDetector(
+              onTap: onScreenTap,
+              child: AspectRatio(
+                aspectRatio: videoPlayerController.value.aspectRatio,
+                // Use the VideoPlayer widget to display the video.
+                child: Stack(children: [
+                  VideoPlayer(videoPlayerController),
+                  AnimatedOpacity(
+                    opacity: !isControlHided ? 1.0 : 0.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Container(
+                      color: Colors.black38,
                     ),
                   ),
-                );
-              } else {
-                // If the VideoPlayerController is still initializing, show a
-                // loading spinner.
-                return Container(
-                    height: 220,
-                    child: Center(child: CircularProgressIndicator()));
-              }
-            },
+                  AnimatedOpacity(
+                    opacity: !isControlHided ? 1.0 : 0.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Center(
+                      child: IconButton(
+                        icon: Icon(
+                          isVideoEnded
+                              ? Icons.replay
+                              : videoPlayerController.value.isPlaying
+                                  ? Icons.pause
+                                  : Icons.play_arrow,
+                          size: 40,
+                        ),
+                        onPressed: () {
+                          if (isControlHided) {
+                            onScreenTap();
+                            return;
+                          }
+                          videoControlTimer.cancel();
+                          if (isVideoEnded) {
+                            videoPlayerController
+                                .seekTo(Duration())
+                                .whenComplete(() {
+                              setState(() {
+                                isVideoEnded = false;
+                              });
+                            });
+                          }
+                          if (videoPlayerController.value.isPlaying) {
+                            videoPlayerController.pause();
+                          } else {
+                            videoPlayerController.play();
+                            videoControlTimer = Timer(Duration(seconds: 2), () {
+                              if (videoPlayerController.value.isPlaying)
+                                setState(() {
+                                  isControlHided = true;
+                                });
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  AnimatedOpacity(
+                    opacity: !isControlHided ? 1.0 : 0.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Container(
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                      child: Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Text(
+                          "${videoPlayerController.value.position.inHours > 0 ? "${videoPlayerController.value.position.inHours}:" : ""}${videoPlayerController.value.position.inHours > 0 ? (videoPlayerController.value.position.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.position.inMinutes}:${(videoPlayerController.value.position.inSeconds % 60).toString().padLeft(2, '0')} / ${videoPlayerController.value.duration.inHours > 0 ? "${videoPlayerController.value.duration.inHours}:" : ""}${videoPlayerController.value.duration.inHours > 0 ? (videoPlayerController.value.duration.inMinutes % 60).toString().padLeft(2, '0') : videoPlayerController.value.duration.inMinutes}:${(videoPlayerController.value.duration.inSeconds % 60).toString().padLeft(2, '0')}",
+                        ),
+                      ),
+                    ),
+                  ),
+                  AnimatedOpacity(
+                    opacity: !isControlHided ? 1.0 : 0.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: isFullScreen ? 10 : 0),
+                        child: IconButton(
+                          icon: Icon(isFullScreen
+                              ? Icons.fullscreen_exit
+                              : Icons.fullscreen),
+                          onPressed: () {
+                            if (isControlHided) {
+                              onScreenTap();
+                              return;
+                            }
+                            if (isFullScreen) {
+                              exitFullScreen();
+                            } else {
+                              enterFullScreen();
+                            }
+                            setState(() {
+                              isFullScreen = !isFullScreen;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  AnimatedOpacity(
+                    opacity: !isControlHided ? 1.0 : 0.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        margin: EdgeInsets.only(bottom: isFullScreen ? 10 : 0),
+                        height: 20,
+                        child: SliderTheme(
+                          data: SliderThemeData(
+                            overlayShape:
+                                RoundSliderOverlayShape(overlayRadius: 0),
+                            trackShape: CustomRoundedRectSliderTrackShape(),
+                          ),
+                          child: Slider(
+                            onChanged: (double value) {
+                              if (isControlHided) {
+                                onScreenTap();
+                                return;
+                              }
+                              Duration seekDuration = Duration(
+                                  seconds: (value *
+                                          videoPlayerController
+                                              .value.duration.inSeconds)
+                                      .round());
+                              videoPlayerController
+                                  .seekTo(seekDuration)
+                                  .whenComplete(() {
+                                setState(() {
+                                  playedRatio = value;
+                                  isVideoEnded = false;
+                                });
+                                videoPlayerController.play();
+                                videoControlTimer =
+                                    Timer(Duration(seconds: 2), () {
+                                  setState(() {
+                                    if (videoPlayerController.value.isPlaying)
+                                      isControlHided = true;
+                                  });
+                                });
+                              });
+                            },
+                            value: playedRatio,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ]),
+              ),
+            ),
           );
+        } else {
+          // If the VideoPlayerController is still initializing, show a
+          // loading spinner.
+          return Container(
+              height: 220, child: Center(child: CircularProgressIndicator()));
+        }
+      },
+    );
   }
 
   Widget getYoutubePlayer() {
     return Container(
       child: YoutubePlayerBuilder(
-        player: YoutubePlayer(
-          controller: youtubePlayerController,
-          showVideoProgressIndicator: true,
-          onEnded: (data) {
-            setState(() {
-              currentLesson.currentProgress.isFinish = true;
-            });
-            finishLesson();
+          player: YoutubePlayer(
+            controller: youtubePlayerController,
+            showVideoProgressIndicator: true,
+            onEnded: (data) {
+              setState(() {
+                currentLesson.currentProgress.isFinish = true;
+              });
+              finishLesson();
+            },
+            onReady: () {
+              youtubePlayerController.addListener(() {
+                updateYoutubePlayer();
+              });
+            },
+          ),
+          builder: (context, player) {
+            return player;
           },
-          onReady: () {
-            youtubePlayerController.addListener(() {
-              updateYoutubePlayer();
-            });
-          },
-        ),
-        builder: (context, player) {
-          return player;
-        },
-        onExitFullScreen: () {
-          AppMode screenMode = Provider.of<AppMode>(context, listen: false);
-          screenMode.setFullScreen(false);
-          setState(() {
-            isYoutubeFullScreen = false;
-          });
-        },
-        onEnterFullScreen: () {
-          AppMode screenMode = Provider.of<AppMode>(context, listen: false);
-          screenMode.setFullScreen(true);
-          setState(() {
-            isYoutubeFullScreen = true;
-          });
-        },
-      ),
+          onExitFullScreen: exitFullScreen,
+          onEnterFullScreen: enterFullScreen),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    String courseId = ModalRoute.of(context).settings.arguments;
+    CourseModel favoriteCourseModel =
+        Provider.of<CourseModel>(context, listen: false);
     authenticationModel = Provider.of<AuthenticationModel>(context);
-    CourseModel favoriteCourseModel = Provider.of<CourseModel>(context);
-
-    //Load data
-    if (isLoading) {
-      fetchCourseData(courseId).then((value) {
-        setState(() {
-          courseDetail = value;
-          print("video url: ${courseDetail.promoVidUrl}");
-        });
-        userRating = Rating(
-            formalityPoint: 0,
-            presentationPoint: 0,
-            contentPoint: 0,
-            courseId: courseDetail.id,
-            content: "");
-        loadVideoPlayer(courseDetail.promoVidUrl, Duration());
-
-        getLastWatchedLesson(courseId).then((lastLessonModel) {
-          if (lastLessonModel == null) return;
-          courseDetail.section.forEach((section) {
-            section.lesson.forEach((lesson) {
-              String videoId = YoutubePlayer.convertUrlToId(
-                  lastLessonModel.payload.videoUrl);
-
-              if (videoId != null) {
-                loadYoutubePlayer(
-                    videoId,
-                    Duration(
-                        seconds: lastLessonModel.payload.currentTime.round()));
-              } else {
-                loadVideoPlayer(
-                    lastLessonModel.payload.videoUrl,
-                    Duration(
-                        seconds: lastLessonModel.payload.currentTime.round()));
-              }
-              fetchExercisesInLesson(lesson.id).then((value) {
-                setState(() {
-                  lesson.exercises = value.payload.exercises;
-                  section.isExpanded = true;
-                });
-                if (lastLessonModel.payload.lessonId == lesson.id) {
-                  setState(() {
-                    currentLesson = lesson;
-                    isLoading = false;
-                  });
-                }
-              });
-            });
-          });
-        });
-
-        checkOwnCourse(courseId).then((checkOwnCourseModel) {
-          setState(() {
-            isRegistered = checkOwnCourseModel.payload.isUserOwnCourse;
-          });
-        });
-        getLikeStatus(courseId).then((value) {
-          setState(() {
-            isLiked = value;
-          });
-        });
-      });
-    } else {
-      learnedHours = 0;
-      courseDetail.section.forEach((section) {
-        section.lesson.forEach((lesson) {
-          if (lesson.currentProgress != null) {
-            setState(() {
-              if (lesson.currentProgress.isFinish) {
-                learnedHours += lesson.hours;
-              } else {
-                learnedHours += lesson.currentProgress.currentTime / 3600;
-              }
-            });
-          }
-          print(learnedHours);
-        });
-      });
-    }
+    courseId = ModalRoute.of(context).settings.arguments;
     return WillPopScope(
       onWillPop: onPop,
-      child: Scaffold(
-        floatingActionButton: isFullScreen || isYoutubeFullScreen
-            ? null
-            : FloatingActionButton(
-                mini: true,
-                child: Icon(isRegistered ? Icons.done : Icons.app_registration),
-                onPressed: () {
-                  if (!isRegistered) {
-                    if (courseDetail.price == 0) {
-                      showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                                insetPadding: EdgeInsets.symmetric(
-                                    horizontal: 5, vertical: 10),
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 10),
-                                title: Text(S.of(context).register),
-                                content: Text(
-                                    S.of(context).registerCourseConfirmation),
-                                actions: <Widget>[
-                                  TextButton(
-                                    child: Text(S.of(context).signOutCancel),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  TextButton(
-                                    child: Text(S.of(context).register),
-                                    onPressed: () {
-                                      getFreeCourse(courseId).then((value) {
-                                        setState(() {
-                                          isRegistered = value;
-                                        });
-                                        Navigator.of(context).pop();
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ));
-                    }
-                  }
-                },
-              ),
-        body: isLoading
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : Column(
+      child: isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Scaffold(
+              floatingActionButton: isFullScreen
+                  ? null
+                  : FloatingActionButton(
+                      mini: true,
+                      child: Icon(
+                          isRegistered ? Icons.done : Icons.app_registration),
+                      onPressed: () {
+                        if (!isRegistered) {
+                          if (courseDetail.price == 0) {
+                            showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                      insetPadding: EdgeInsets.symmetric(
+                                          horizontal: 5, vertical: 10),
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 24, vertical: 10),
+                                      title: Text(S.of(context).register),
+                                      content: Text(S
+                                          .of(context)
+                                          .registerCourseConfirmation),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child:
+                                              Text(S.of(context).signOutCancel),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        TextButton(
+                                          child: Text(S.of(context).register),
+                                          onPressed: () {
+                                            getFreeCourse(courseDetail.id)
+                                                .then((value) {
+                                              setState(() {
+                                                isRegistered = value;
+                                              });
+                                              Navigator.of(context).pop();
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ));
+                          }
+                        }
+                      },
+                    ),
+              body: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   isYoutubeVideo
                       ? Expanded(
-                          flex: isYoutubeFullScreen
+                          flex: isFullScreen
                               ? 1
                               : ((MediaQuery.of(context).size.width / 16 * 9) /
                                       MediaQuery.of(context).size.height)
@@ -793,7 +789,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                       : isFullScreen
                           ? Expanded(child: getVideoPlayerWidget())
                           : getVideoPlayerWidget(),
-                  isYoutubeFullScreen || isFullScreen
+                  isFullScreen
                       ? SizedBox()
                       : Expanded(
                           child: ListView(
@@ -858,27 +854,34 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                           color: Colors.redAccent,
                                         ),
                                         onPressed: () {
-                                          likeCourse(courseId).then((value) {
+                                          likeCourse(courseDetail.id)
+                                              .then((value) {
                                             setState(() {
                                               isLiked = value;
                                             });
-                                            Course course = Course(
-                                              id: courseDetail.id,
-                                              title: courseDetail.title,
-                                              price: courseDetail.price,
-                                              imageUrl: courseDetail.imageUrl,
-                                              instructorId:
-                                                  courseDetail.instructorId,
-                                              instructorUserName:
-                                                  courseDetail.instructor.name,
-                                              contentPoint:
-                                                  courseDetail.contentPoint,
-                                              formalityPoint:
-                                                  courseDetail.formalityPoint,
-                                              presentationPoint: courseDetail
-                                                  .presentationPoint,
-                                            );
-                                            favoriteCourseModel.add(course);
+
+                                            if (isLiked) {
+                                              Course course = Course(
+                                                id: courseDetail.id,
+                                                title: courseDetail.title,
+                                                price: courseDetail.price,
+                                                imageUrl: courseDetail.imageUrl,
+                                                instructorId:
+                                                    courseDetail.instructorId,
+                                                instructorUserName: courseDetail
+                                                    .instructor.name,
+                                                contentPoint:
+                                                    courseDetail.contentPoint,
+                                                formalityPoint:
+                                                    courseDetail.formalityPoint,
+                                                presentationPoint: courseDetail
+                                                    .presentationPoint,
+                                              );
+                                              favoriteCourseModel.add(course);
+                                            } else {
+                                              favoriteCourseModel
+                                                  .remove(courseId);
+                                            }
                                           });
                                         },
                                       ),
@@ -901,13 +904,35 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                     ],
                                   ),
                                   Column(
-                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      IconButton(
-                                        icon: Icon(isDownloaded
-                                            ? Icons.download_done_rounded
-                                            : Icons.download_rounded),
-                                        onPressed: () {},
+                                      InkWell(
+                                        child: Stack(
+                                            alignment: Alignment.center,
+                                            children: [
+                                              IconButton(
+                                                  icon: isDownloaded
+                                                      ? Icon(
+                                                          Icons
+                                                              .download_done_rounded,
+                                                          color: Colors.green,
+                                                        )
+                                                      : Icon(
+                                                          Icons
+                                                              .download_rounded,
+                                                          color:
+                                                              downloadRatio == 0
+                                                                  ? Colors
+                                                                      .black87
+                                                                  : Colors.blue,
+                                                        ),
+                                                  onPressed: () {}),
+                                              CircularProgressIndicator(
+                                                  value: downloadRatio),
+                                            ]),
+                                        onTap: () {
+                                          downloadCourse();
+                                        },
+                                        customBorder: CircleBorder(),
                                       ),
                                       Text(S.of(context).download)
                                     ],
@@ -1063,11 +1088,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 expansionCallback:
                                     (int index, bool isExpanded) {
                                   setState(() {
-                                    courseDetail.section[index].isExpanded =
+                                    courseDetail.sections[index].isExpanded =
                                         !isExpanded;
                                   });
                                 },
-                                children: courseDetail.section
+                                children: courseDetail.sections
                                     .map<ExpansionPanel>((Section section) {
                                   return ExpansionPanel(
                                       canTapOnHeader: true,
@@ -1093,19 +1118,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                         width: double.infinity,
                                         child: Column(
                                           children:
-                                              section.lesson.map((lesson) {
+                                              section.lessons.map((lesson) {
                                             Duration lessonDuration = Duration(
                                                 seconds: (lesson.hours * 3600)
                                                     .round());
-                                            if (isRegistered &&
-                                                lesson.currentProgress ==
-                                                    null) {
-                                              getVideoInfo(courseId, lesson.id)
-                                                  .then((videoProgressModel) {
-                                                lesson.currentProgress =
-                                                    videoProgressModel.payload;
-                                              });
-                                            }
                                             return Column(
                                               children: [
                                                 ListTile(
@@ -1115,8 +1131,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                         }
                                                       : null,
                                                   dense: true,
-                                                  leading: currentLesson.id ==
-                                                          lesson.id
+                                                  leading: (currentLesson !=
+                                                              null
+                                                          ? currentLesson.id ==
+                                                              lesson.id
+                                                          : false)
                                                       ? Icon(
                                                           Icons
                                                               .play_circle_fill,
@@ -1496,7 +1515,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         ),
                 ],
               ),
-      ),
+            ),
     );
   }
 }

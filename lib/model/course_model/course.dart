@@ -1,4 +1,6 @@
-class Course {
+import 'package:flutter/cupertino.dart';
+
+class Course extends ChangeNotifier {
   Course({
     this.id,
     this.title,
@@ -57,7 +59,7 @@ class Course {
   String instructorUserName;
 
   factory Course.fromJson(Map<String, dynamic> json) => Course(
-        id: json["id"],
+        id: json["id"] == null ? json["courseId"] : json["id"],
         title: json["title"] == null ? json["courseTitle"] : json["title"],
         subtitle: json["subtitle"],
         price: json["price"] == null ? json["coursePrice"] : json["price"],
@@ -125,7 +127,9 @@ class Course {
         "subtitle": subtitle,
         "price": price,
         "description": description,
-        "requirement": List<dynamic>.from(requirement.map((x) => x)),
+        "requirement": requirement == null
+            ? null
+            : List<dynamic>.from(requirement.map((x) => x)),
         "learnWhat": List<dynamic>.from(learnWhat.map((x) => x)),
         "soldNumber": soldNumber,
         "ratedNumber": ratedNumber,

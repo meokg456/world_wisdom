@@ -9,7 +9,7 @@ class Section {
       this.isDeleted,
       this.createdAt,
       this.updatedAt,
-      this.lesson,
+      this.lessons,
       this.sumHours,
       this.sumLessonFinish,
       this.isExpanded});
@@ -21,7 +21,7 @@ class Section {
   bool isDeleted;
   DateTime createdAt;
   DateTime updatedAt;
-  List<Lesson> lesson;
+  List<Lesson> lessons;
   double sumHours;
   int sumLessonFinish;
   bool isExpanded = false;
@@ -34,7 +34,7 @@ class Section {
       isDeleted: json["isDeleted"],
       createdAt: DateTime.parse(json["createdAt"]),
       updatedAt: DateTime.parse(json["updatedAt"]),
-      lesson: List<Lesson>.from(json["lesson"].map((x) => Lesson.fromJson(x))),
+      lessons: List<Lesson>.from(json["lesson"].map((x) => Lesson.fromJson(x))),
       sumHours: json["sumHours"].toDouble(),
       sumLessonFinish: json["sumLessonFinish"],
       isExpanded: json["isExpanded"] == null ? false : json["isExpanded"]);
@@ -47,7 +47,7 @@ class Section {
         "isDeleted": isDeleted,
         "createdAt": createdAt.toIso8601String(),
         "updatedAt": updatedAt.toIso8601String(),
-        "lesson": List<dynamic>.from(lesson.map((x) => x.toJson())),
+        "lesson": List<dynamic>.from(lessons.map((x) => x.toJson())),
         "sumHours": sumHours,
         "sumLessonFinish": sumLessonFinish,
         "isExpanded": isExpanded

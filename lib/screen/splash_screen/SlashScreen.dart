@@ -9,6 +9,8 @@ import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user_model.dart';
+import 'package:world_wisdom/model/course_model/course_detail.dart';
+import 'package:world_wisdom/model/course_model/downloaded_courses_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -33,7 +35,13 @@ class SplashScreen extends StatelessWidget {
         context.read<AuthenticationModel>().setAuthenticationModel(userModel);
       }
     }
-    DatabaseConnector.initDatabase();
+    DownloadedCoursesModel downloadedCoursesModel =
+        Provider.of(context, listen: false);
+    var data = await (await DatabaseConnector.database).query("courses");
+    data.forEach((json) {
+      downloadedCoursesModel
+          .add(CourseDetail.fromJson(jsonDecode(json["data"])));
+    });
   }
 
   @override

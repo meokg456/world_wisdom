@@ -15,11 +15,11 @@ class HorizontalCoursesListItem extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(right: 10),
       child: InkWell(
-        onTap: () {
-          Keys.mainNavigatorKey.currentState.pushNamedAndRemoveUntil(
+        onTap: () async {
+          await Keys.mainNavigatorKey.currentState.pushNamedAndRemoveUntil(
               "/course-detail",
               (route) => route.settings.name == "/course-detail" ? false : true,
-              arguments: course.id);
+              arguments: course.id) as Course;
         },
         child: Card(
           child: Container(
