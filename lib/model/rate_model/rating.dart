@@ -38,11 +38,26 @@ class Rating {
         createdAt: DateTime.parse(json["createdAt"]),
         updatedAt: DateTime.parse(json["updatedAt"]),
         user: json["user"] == null ? null : User.fromJson(json["user"]),
-        averagePoint:
-            json["averagePoint"] == null ? 0 : json["averagePoint"].toDouble(),
+        averagePoint: json["averagePoint"] == null
+            ? null
+            : json["averagePoint"].toDouble(),
       );
 
   Map<String, dynamic> toJson() => {
+        "id": id,
+        "userId": userId,
+        "courseId": courseId,
+        "formalityPoint": formalityPoint,
+        "contentPoint": contentPoint,
+        "presentationPoint": presentationPoint,
+        "content": content,
+        "createdAt": createdAt.toIso8601String(),
+        "updatedAt": updatedAt.toIso8601String(),
+        "user": user.toJson(),
+        "averagePoint": averagePoint,
+      };
+
+  Map<String, dynamic> toRateSubmitJson() => {
         "courseId": courseId,
         "formalityPoint": formalityPoint,
         "contentPoint": contentPoint,

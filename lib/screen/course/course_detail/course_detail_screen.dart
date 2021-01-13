@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
+import 'package:share/share.dart';
 import 'package:video_player/video_player.dart';
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
@@ -24,6 +25,8 @@ import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:world_wisdom/screen/screen_mode/app_mode.dart';
 import 'package:world_wisdom/widgets/custom_rounded_rectangle_track_shape/custom_rounded_rectangle_track_shape.dart';
 import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list.dart';
+import 'package:world_wisdom/widgets/rating/horizontal_rating_statistic_item.dart';
+import 'package:world_wisdom/widgets/rating/rating_list_item.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class CourseDetailScreen extends StatefulWidget {
@@ -36,10 +39,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   AuthenticationModel authenticationModel;
   bool isLoading = true;
   CourseDetail courseDetail;
+  Lesson currentLesson;
   int descriptionMaxLines = 2;
-  String currentLessonId;
   bool isRegistered = false;
   bool isExercisesExpanded = false;
+  bool isYoutubeVideo = false;
   bool isLiked = false;
   bool isFullScreen = false;
   bool isControlHided = false;
@@ -47,10 +51,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool isYoutubeFullScreen = false;
   bool isRatingExpanded = false;
   bool isUserRatingExpanded = false;
+  bool isDownloaded = false;
   double learnedHours = 0;
-  String videoId;
-  Duration youtubeLastWatchedPosition = Duration();
-  ExercisesInLessonModel exercisesInLessonModel;
   Future<void> initialize;
   double playedRatio = 0.0;
   Rating userRating;
@@ -85,7 +87,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           "Authorization": "Bearer ${authenticationModel.token}",
           "Content-Type": "application/json"
         },
-        body: jsonEncode(userRating.toJson()));
+        body: jsonEncode(userRating.toRateSubmitJson()));
     print(response.body);
     if (response.statusCode == 200) {
       Rating rating = Rating.fromJson(jsonDecode(response.body)["payload"]);
@@ -227,15 +229,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     super.dispose();
   }
 
+  void onShare(BuildContext context) async {
+    final RenderBox box = context.findRenderObject();
+    await Share.share("${Constants.webUrl}/course-detail/${courseDetail.id}",
+        subject: "${S.of(context).share} course - World wisdom",
+        sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);
+  }
+
   void updateCurrentVideoPosition(double currentTime) async {
-    if ((currentLessonId != null &&
+    if ((currentLesson.id != null &&
             videoPlayerController != null &&
             videoPlayerController.value.duration != null) ||
-        (videoId != null && currentLessonId != null)) {
+        (isYoutubeVideo && currentLesson.id != null)) {
       var response = await http.put(
           "${Constants.apiUrl}/lesson/update-current-time-learn-video",
           body: jsonEncode(
-              {"lessonId": currentLessonId, "currentTime": currentTime}),
+              {"lessonId": currentLesson.id, "currentTime": currentTime}),
           headers: {
             "Authorization": "Bearer ${authenticationModel.token}",
             "Content-Type": "application/json"
@@ -246,7 +255,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
   void finishLesson() async {
     var response = await http.post("${Constants.apiUrl}/lesson/update-status",
-        body: jsonEncode({"lessonId": currentLessonId}),
+        body: jsonEncode({"lessonId": currentLesson.id}),
         headers: {
           "Authorization": "Bearer ${authenticationModel.token}",
           "Content-Type": "application/json"
@@ -270,7 +279,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       Lesson currentLesson;
       courseDetail.section.forEach((section) {
         section.lesson.forEach((lesson) {
-          if (currentLessonId == lesson.id) {
+          if (currentLesson.id == lesson.id) {
             currentLesson = lesson;
             return;
           }
@@ -289,7 +298,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     });
   }
 
-  void initVideoPlayer(String videoUrl, Duration start) {
+  void loadVideoPlayer(String videoUrl, Duration start) {
     if (videoPlayerController != null) {
       videoPlayerController.pause();
       videoPlayerController.dispose();
@@ -307,13 +316,45 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       isControlHided = false;
       isVideoEnded = false;
       playedRatio = 0.0;
+      isYoutubeVideo = false;
     });
   }
 
-  void initYoutubeVideoPlayer() {
+  void updateYoutubePlayer() {
+    if (youtubePlayerController.value.position.inSeconds /
+            youtubePlayerController.metadata.duration.inSeconds >
+        0.9) {
+      Lesson currentLesson;
+      courseDetail.section.forEach((section) {
+        section.lesson.forEach((lesson) {
+          if (currentLesson.id == lesson.id) {
+            currentLesson = lesson;
+            return;
+          }
+        });
+      });
+      setState(() {
+        currentLesson.currentProgress.isFinish = true;
+      });
+      finishLesson();
+    }
+    updateCurrentVideoPosition(
+        youtubePlayerController.value.position.inSeconds.toDouble());
+  }
+
+  void loadYoutubePlayer(String videoId, Duration start) {
+    if (youtubePlayerController != null) {
+      youtubePlayerController.load(videoId, startAt: start.inSeconds);
+      setState(() {
+        isYoutubeVideo = true;
+      });
+      return;
+    }
     setState(() {
-      youtubePlayerController =
-          YoutubePlayerController(initialVideoId: videoId);
+      youtubePlayerController = YoutubePlayerController(
+          initialVideoId: videoId,
+          flags: YoutubePlayerFlags(startAt: start.inSeconds));
+      isYoutubeVideo = true;
     });
   }
 
@@ -333,6 +374,28 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       DeviceOrientation.portraitDown,
     ]);
     screenMode.setFullScreen(false);
+  }
+
+  void selectLesson(Lesson lesson) {
+    getVideoInfo(courseDetail.id, lesson.id).then((videoProgressModel) {
+      if (videoProgressModel == null) {
+        return;
+      }
+      String videoId =
+          YoutubePlayer.convertUrlToId(videoProgressModel.payload.videoUrl);
+
+      if (videoId != null) {
+        loadYoutubePlayer(videoId,
+            Duration(seconds: videoProgressModel.payload.currentTime.round()));
+      } else
+        loadVideoPlayer(videoProgressModel.payload.videoUrl,
+            Duration(seconds: videoProgressModel.payload.currentTime.round()));
+      fetchExercisesInLesson(lesson.id).then((value) {
+        setState(() {
+          currentLesson = lesson;
+        });
+      });
+    });
   }
 
   Future<bool> onPop() async {
@@ -545,6 +608,45 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           );
   }
 
+  Widget getYoutubePlayer() {
+    return Container(
+      child: YoutubePlayerBuilder(
+        player: YoutubePlayer(
+          controller: youtubePlayerController,
+          showVideoProgressIndicator: true,
+          onEnded: (data) {
+            setState(() {
+              currentLesson.currentProgress.isFinish = true;
+            });
+            finishLesson();
+          },
+          onReady: () {
+            youtubePlayerController.addListener(() {
+              updateYoutubePlayer();
+            });
+          },
+        ),
+        builder: (context, player) {
+          return player;
+        },
+        onExitFullScreen: () {
+          AppMode screenMode = Provider.of<AppMode>(context, listen: false);
+          screenMode.setFullScreen(false);
+          setState(() {
+            isYoutubeFullScreen = false;
+          });
+        },
+        onEnterFullScreen: () {
+          AppMode screenMode = Provider.of<AppMode>(context, listen: false);
+          screenMode.setFullScreen(true);
+          setState(() {
+            isYoutubeFullScreen = true;
+          });
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     String courseId = ModalRoute.of(context).settings.arguments;
@@ -564,38 +666,38 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             contentPoint: 0,
             courseId: courseDetail.id,
             content: "");
-        initVideoPlayer(courseDetail.promoVidUrl, Duration());
+        loadVideoPlayer(courseDetail.promoVidUrl, Duration());
 
         getLastWatchedLesson(courseId).then((lastLessonModel) {
           if (lastLessonModel == null) return;
           courseDetail.section.forEach((section) {
             section.lesson.forEach((lesson) {
-              String id = YoutubePlayer.convertUrlToId(
+              String videoId = YoutubePlayer.convertUrlToId(
                   lastLessonModel.payload.videoUrl);
 
-              if (id != null) {
-                setState(() {
-                  youtubePlayerController =
-                      YoutubePlayerController(initialVideoId: id);
-                  videoId = id;
-                });
-                youtubeLastWatchedPosition = Duration(
-                    seconds: lastLessonModel.payload.currentTime.round());
+              if (videoId != null) {
+                loadYoutubePlayer(
+                    videoId,
+                    Duration(
+                        seconds: lastLessonModel.payload.currentTime.round()));
               } else {
-                initVideoPlayer(
+                loadVideoPlayer(
                     lastLessonModel.payload.videoUrl,
                     Duration(
                         seconds: lastLessonModel.payload.currentTime.round()));
               }
-              if (lastLessonModel.payload.lessonId == lesson.id) {
-                fetchExercisesInLesson(lesson.id).then((value) {
-                  setState(() {
-                    exercisesInLessonModel = value;
-                    section.isExpanded = true;
-                    currentLessonId = lesson.id;
-                  });
+              fetchExercisesInLesson(lesson.id).then((value) {
+                setState(() {
+                  lesson.exercises = value.payload.exercises;
+                  section.isExpanded = true;
                 });
-              }
+                if (lastLessonModel.payload.lessonId == lesson.id) {
+                  setState(() {
+                    currentLesson = lesson;
+                    isLoading = false;
+                  });
+                }
+              });
             });
           });
         });
@@ -609,9 +711,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           setState(() {
             isLiked = value;
           });
-        });
-        setState(() {
-          isLoading = false;
         });
       });
     } else {
@@ -676,91 +775,22 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   }
                 },
               ),
-        body: isLoading == true
+        body: isLoading
             ? Center(
                 child: CircularProgressIndicator(),
               )
             : Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  videoId != null
+                  isYoutubeVideo
                       ? Expanded(
-                          child: Container(
-                            child: YoutubePlayerBuilder(
-                              player: YoutubePlayer(
-                                controller: youtubePlayerController,
-                                showVideoProgressIndicator: true,
-                                onEnded: (data) {
-                                  setState(() {
-                                    Lesson currentLesson;
-                                    courseDetail.section.forEach((section) {
-                                      section.lesson.forEach((lesson) {
-                                        if (currentLessonId == lesson.id) {
-                                          currentLesson = lesson;
-                                          return;
-                                        }
-                                      });
-                                    });
-                                    currentLesson.currentProgress.isFinish =
-                                        true;
-                                  });
-                                  finishLesson();
-                                },
-                                onReady: () {
-                                  youtubePlayerController.addListener(() {
-                                    if (youtubePlayerController
-                                                .value.position.inSeconds /
-                                            youtubePlayerController
-                                                .metadata.duration.inSeconds >
-                                        0.9) {
-                                      Lesson currentLesson;
-                                      courseDetail.section.forEach((section) {
-                                        section.lesson.forEach((lesson) {
-                                          if (currentLessonId == lesson.id) {
-                                            currentLesson = lesson;
-                                            return;
-                                          }
-                                        });
-                                      });
-                                      setState(() {
-                                        currentLesson.currentProgress.isFinish =
-                                            true;
-                                      });
-                                      finishLesson();
-                                    }
-                                    updateCurrentVideoPosition(
-                                        youtubePlayerController
-                                            .value.position.inSeconds
-                                            .toDouble());
-                                  });
-                                  youtubePlayerController
-                                      .seekTo(youtubeLastWatchedPosition);
-                                },
-                              ),
-                              builder: (context, player) {
-                                return player;
-                              },
-                              onExitFullScreen: () {
-                                AppMode screenMode = Provider.of<AppMode>(
-                                    context,
-                                    listen: false);
-                                screenMode.setFullScreen(false);
-                                setState(() {
-                                  isYoutubeFullScreen = false;
-                                });
-                              },
-                              onEnterFullScreen: () {
-                                AppMode screenMode = Provider.of<AppMode>(
-                                    context,
-                                    listen: false);
-                                screenMode.setFullScreen(true);
-                                setState(() {
-                                  isYoutubeFullScreen = true;
-                                });
-                              },
-                            ),
-                          ),
-                        )
-                      : isYoutubeFullScreen || isFullScreen
+                          flex: isYoutubeFullScreen
+                              ? 1
+                              : ((MediaQuery.of(context).size.width / 16 * 9) /
+                                      MediaQuery.of(context).size.height)
+                                  .round(),
+                          child: getYoutubePlayer())
+                      : isFullScreen
                           ? Expanded(child: getVideoPlayerWidget())
                           : getVideoPlayerWidget(),
                   isYoutubeFullScreen || isFullScreen
@@ -863,7 +893,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                           Icons.share,
                                           color: Colors.blue,
                                         ),
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          onShare(context);
+                                        },
                                       ),
                                       Text(S.of(context).share)
                                     ],
@@ -872,7 +904,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
-                                        icon: Icon(Icons.download_rounded),
+                                        icon: Icon(isDownloaded
+                                            ? Icons.download_done_rounded
+                                            : Icons.download_rounded),
                                         onPressed: () {},
                                       ),
                                       Text(S.of(context).download)
@@ -1077,54 +1111,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                 ListTile(
                                                   onTap: isRegistered
                                                       ? () {
-                                                          print(lesson.id);
-                                                          getVideoInfo(courseId,
-                                                                  lesson.id)
-                                                              .then(
-                                                                  (videoProgressModel) {
-                                                            if (videoProgressModel ==
-                                                                null) {
-                                                              return;
-                                                            }
-                                                            String id = YoutubePlayer
-                                                                .convertUrlToId(
-                                                                    videoProgressModel
-                                                                        .payload
-                                                                        .videoUrl);
-
-                                                            if (id != null) {
-                                                              if (youtubePlayerController ==
-                                                                  null) {
-                                                                videoId = id;
-                                                                initYoutubeVideoPlayer();
-                                                              } else
-                                                                youtubePlayerController
-                                                                    .load(id);
-                                                            } else
-                                                              initVideoPlayer(
-                                                                  videoProgressModel
-                                                                      .payload
-                                                                      .videoUrl,
-                                                                  Duration(
-                                                                      seconds: videoProgressModel
-                                                                          .payload
-                                                                          .currentTime
-                                                                          .round()));
-                                                            fetchExercisesInLesson(
-                                                                    lesson.id)
-                                                                .then((value) {
-                                                              setState(() {
-                                                                exercisesInLessonModel =
-                                                                    value;
-                                                                currentLessonId =
-                                                                    lesson.id;
-                                                              });
-                                                            });
-                                                          });
+                                                          selectLesson(lesson);
                                                         }
                                                       : null,
                                                   dense: true,
-                                                  leading: currentLessonId ==
+                                                  leading: currentLesson.id ==
                                                           lesson.id
                                                       ? Icon(
                                                           Icons
@@ -1150,9 +1141,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                                       context)
                                                                   .backgroundColor,
                                                             ),
-                                                  title: InkWell(
-                                                    child: Text(lesson.name),
-                                                  ),
+                                                  title: Text(lesson.name),
                                                   trailing: Text(
                                                       "${lessonDuration.inHours > 0 ? "${lessonDuration.inHours}:" : ""}${lessonDuration.inHours > 0 ? (lessonDuration.inMinutes % 60).toString().padLeft(2, '0') : lessonDuration.inMinutes}:${(lessonDuration.inSeconds % 60).toString().padLeft(2, '0')}"),
                                                 ),
@@ -1164,10 +1153,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                       isExpanded: section.isExpanded);
                                 }).toList(),
                               ),
-                              exercisesInLessonModel == null ||
-                                      exercisesInLessonModel
-                                              .payload.exercises.length ==
-                                          0
+                              currentLesson == null ||
+                                      currentLesson.exercises.length == 0
                                   ? SizedBox()
                                   : ExpansionPanelList(
                                       expansionCallback:
@@ -1189,8 +1176,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                               );
                                             },
                                             body: Column(
-                                              children: exercisesInLessonModel
-                                                  .payload.exercises
+                                              children: currentLesson.exercises
                                                   .map((exercise) {
                                                 return ListTile(
                                                   dense: true,
@@ -1264,36 +1250,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                             child: Column(
                                                 children: [4, 3, 2, 1, 0]
                                                     .map((index) {
-                                              return Row(
-                                                children: [
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Text("${index + 1}"),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Icon(Icons.star,
-                                                      color: Colors.amber),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Container(
-                                                      width: 100,
-                                                      child:
-                                                          LinearProgressIndicator(
-                                                        value: courseDetail
-                                                                .ratings
-                                                                .stars[index] /
-                                                            100,
-                                                      )),
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  Text(
-                                                      "${courseDetail.ratings.stars[index]}%")
-                                                ],
-                                              );
+                                              return HorizontalRatingStatisticItem(
+                                                  index,
+                                                  courseDetail
+                                                      .ratings.stars[index]);
                                             }).toList()),
                                           )
                                         ],
@@ -1326,61 +1286,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                         children: courseDetail
                                             .ratings.ratingList
                                             .map((rating) {
-                                          return Column(
-                                            children: [
-                                              Divider(
-                                                thickness: 1,
-                                              ),
-                                              ListTile(
-                                                dense: true,
-                                                title: ListTile(
-                                                  contentPadding:
-                                                      EdgeInsets.all(0),
-                                                  dense: true,
-                                                  leading: CircleAvatar(
-                                                    backgroundImage:
-                                                        NetworkImage(
-                                                            rating.user.avatar),
-                                                  ),
-                                                  title: ListTile(
-                                                      trailing: Text(
-                                                          "${DateFormat.yMMMMd().format(rating.createdAt.toLocal())}"),
-                                                      contentPadding:
-                                                          EdgeInsets.all(0),
-                                                      title: Text(
-                                                          rating.user.name)),
-                                                  subtitle: RatingBar.builder(
-                                                    initialRating:
-                                                        rating.averagePoint,
-                                                    minRating: 1,
-                                                    direction: Axis.horizontal,
-                                                    allowHalfRating: true,
-                                                    itemCount: 5,
-                                                    itemSize: 12,
-                                                    itemPadding:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 1),
-                                                    itemBuilder: (context, _) =>
-                                                        Icon(
-                                                      Icons.star,
-                                                      color: Colors.amber,
-                                                    ),
-                                                    ignoreGestures: true,
-                                                    onRatingUpdate:
-                                                        (double value) {},
-                                                  ),
-                                                ),
-                                                subtitle: ListTile(
-                                                  contentPadding:
-                                                      EdgeInsets.all(0),
-                                                  title: Text(
-                                                    rating.content,
-                                                    textAlign: TextAlign.left,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          );
+                                          return RatingListItem(rating);
                                         }).toList(),
                                       ),
                                       isExpanded: isRatingExpanded)

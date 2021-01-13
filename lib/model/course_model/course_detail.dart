@@ -50,7 +50,7 @@ class CourseDetail {
   double contentPoint;
   double presentationPoint;
   String imageUrl;
-  dynamic promoVidUrl;
+  String promoVidUrl;
   String status;
   bool isHidden;
   DateTime createdAt;

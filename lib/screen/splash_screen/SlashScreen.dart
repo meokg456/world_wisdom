@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
@@ -10,6 +12,7 @@ import 'package:world_wisdom/model/authentication_model/user_model/user_model.da
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:world_wisdom/sql_lite/database_connector.dart';
 
 class SplashScreen extends StatelessWidget {
   Future<void> loadData(BuildContext context) async {
@@ -30,6 +33,7 @@ class SplashScreen extends StatelessWidget {
         context.read<AuthenticationModel>().setAuthenticationModel(userModel);
       }
     }
+    DatabaseConnector.initDatabase();
   }
 
   @override

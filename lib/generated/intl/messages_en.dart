@@ -23,7 +23,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static _notInlinedMessages(_) => <String, Function> {
     "achievement" : MessageLookupByLibrary.simpleMessage("Achievement"),
     "all" : MessageLookupByLibrary.simpleMessage("All"),
-    "appHint" : MessageLookupByLibrary.simpleMessage("Online courses\\n for students"),
+    "appHint" : MessageLookupByLibrary.simpleMessage("Online courses\n for students"),
     "avatarUrl" : MessageLookupByLibrary.simpleMessage("Avatar URL"),
     "browse" : MessageLookupByLibrary.simpleMessage("Browse"),
     "browseEncourage" : MessageLookupByLibrary.simpleMessage("Keep your skills up-to-date with access to thousands of courses by industry experts"),

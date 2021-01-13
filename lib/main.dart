@@ -69,6 +69,7 @@ ThemeData lightTheme = ThemeData(
     dialogBackgroundColor: Color(0xFFBDBDBD),
     canvasColor: Color(0xFFE0E0E0),
     focusColor: Color(0xFFE65100),
+    cursorColor: Colors.black,
     iconTheme: IconThemeData(color: Colors.black),
     // primaryIconTheme: IconThemeData(color: Color(0xFFBDBDBD)),
     // accentIconTheme: IconThemeData(color: Color(0xFFBDBDBD)),

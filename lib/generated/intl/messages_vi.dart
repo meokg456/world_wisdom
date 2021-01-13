@@ -23,7 +23,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static _notInlinedMessages(_) => <String, Function> {
     "achievement" : MessageLookupByLibrary.simpleMessage("Học được"),
     "all" : MessageLookupByLibrary.simpleMessage("Tất cả"),
-    "appHint" : MessageLookupByLibrary.simpleMessage("Khóa học hay\\n cho học sĩ"),
+    "appHint" : MessageLookupByLibrary.simpleMessage("Khóa học hay\n cho học sĩ"),
     "avatarUrl" : MessageLookupByLibrary.simpleMessage("Đường dẫn ảnh đại diện"),
     "browse" : MessageLookupByLibrary.simpleMessage("Duyệt"),
     "browseEncourage" : MessageLookupByLibrary.simpleMessage("Không ngừng phát triển với hàng ngàn khóa học chất lượng"),
