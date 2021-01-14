@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/handler/handler.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
-import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user_type.dart';
 import 'package:world_wisdom/screen/authentication/validator/validator.dart';

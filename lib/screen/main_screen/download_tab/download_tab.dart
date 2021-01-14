@@ -9,7 +9,6 @@ import 'package:world_wisdom/model/course_model/course_detail.dart';
 import 'package:world_wisdom/model/course_model/downloaded_courses_model.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/screen/main_screen/main_app_bar/main_app_bar.dart';
-import 'package:world_wisdom/widgets/vertical_courses_list/vertical_courses_item.dart';
 
 class DownloadTab extends StatefulWidget {
   @override

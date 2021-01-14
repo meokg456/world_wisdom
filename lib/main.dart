@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/generated/l10n.dart';
-import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/model/course_model/downloaded_courses_model.dart';
 import 'package:world_wisdom/model/course_model/favorite_courses/favorite_courses_model.dart';
 import 'package:world_wisdom/model/course_model/my_courses/my_courses_model.dart';

@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:intl/intl.dart';
 
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/handler/handler.dart';

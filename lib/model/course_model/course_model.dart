@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 
 class CourseModel {

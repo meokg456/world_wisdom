@@ -21,7 +21,6 @@ import 'package:world_wisdom/model/course_model/course_detail.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/model/course_model/course_detail_model.dart';
-import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/model/course_model/downloaded_courses_model.dart';
 import 'package:world_wisdom/model/course_model/favorite_courses/favorite_courses_model.dart';
 import 'package:world_wisdom/model/exercise_model/exercises_in_lesson_model.dart';
