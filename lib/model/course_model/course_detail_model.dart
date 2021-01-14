@@ -1,4 +1,3 @@
-import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/course_model/course_detail.dart';
 
 class CourseDetailModel {

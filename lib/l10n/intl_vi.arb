@@ -89,5 +89,13 @@
   "contactInfo": "Tác giả: Nguyen Huu Dung\nEmail: meokg456@gmail.com",
   "appVersion" : "Phiên bản",
   "downloadDenied": "Không thể tải",
-  "downloadDeniedMessage": "Bạn không thể tải khóa học có video youtube"
+  "downloadDeniedMessage": "Bạn không thể tải khóa học có video youtube",
+  "emptyUsernameError" : "Username không được bỏ trống",
+  "emptyEmailError": "Email không được bỏ trống",
+  "invalidEmail" : "Địa chỉ email không hợp lệ",
+  "emptyPasswordError" : "Password không được bỏ trống",
+  "invalidUrl": "Đường dẫn không hợp lệ",
+  "emptyPhoneNumberError": "Số điện thoại không được bỏ trống",
+  "tooLongPhoneNumber" : "Số điện thoại không được dài hơn 10 số",
+  "blankCharacterUserNameError": "Username không được có khoảng cách"
 }

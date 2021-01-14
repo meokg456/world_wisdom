@@ -89,5 +89,13 @@
   "contactInfo": "Author: Nguyen Huu Dung\nEmail: meokg456@gmail.com",
   "appVersion" : "App version",
   "downloadDenied": "Download denied",
-  "downloadDeniedMessage": "You can't download course which have youtube video"
+  "downloadDeniedMessage": "You can't download course which have youtube video",
+  "emptyUsernameError" : "Username can not be empty",
+  "emptyEmailError": "Email can not be empty",
+  "invalidEmail" : "Invalid Email",
+  "emptyPasswordError" : "Password cannot be empty",
+  "invalidUrl": "Invalid url",
+  "emptyPhoneNumberError": "Phone number cannot be empty",
+  "tooLongPhoneNumber" : "Phone number cannot be > 10 digits",
+  "blankCharacterUserNameError": "Username cannot have blank characters"
 }

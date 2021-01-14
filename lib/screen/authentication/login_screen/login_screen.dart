@@ -75,7 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                     controller: _usernameController,
                     textInputAction: TextInputAction.next,
-                    validator: Validator.validateEmail,
+                    validator: (text) {
+                      return Validator.validateEmail(context, text);
+                    },
                     decoration: InputDecoration(
                       labelText: S.of(context).usernameSignIn,
                     )),
@@ -83,7 +85,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordController,
                     obscureText: true,
                     onEditingComplete: logIn,
-                    validator: Validator.validatePassword,
+                    validator: (text) {
+                      return Validator.validatePassword(context, text);
+                    },
                     textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
                         labelText: S.of(context).password,

@@ -86,7 +86,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     TextFormField(
                       controller: _emailController,
-                      validator: Validator.validateEmail,
+                      validator: (text) {
+                        return Validator.validateEmail(context, text);
+                      },
                       decoration: InputDecoration(
                           labelText: "Email",
                           labelStyle: Theme.of(context).textTheme.overline),

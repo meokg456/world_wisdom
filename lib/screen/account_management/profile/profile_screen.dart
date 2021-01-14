@@ -116,7 +116,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 controller: avatarUriController,
                                 textInputAction: TextInputAction.next,
                                 keyboardType: TextInputType.url,
-                                validator: Validator.validateUrl,
+                                validator: (text) {
+                                  return Validator.validateUrl(context, text);
+                                },
                                 decoration: InputDecoration(
                                   labelText: S.of(context).avatarUrl,
                                 )),
@@ -124,7 +126,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 textInputAction: TextInputAction.next,
                                 controller: phoneController,
                                 keyboardType: TextInputType.phone,
-                                validator: Validator.validatePhone,
+                                validator: (text) {
+                                  return Validator.validatePhone(context, text);
+                                },
                                 decoration: InputDecoration(
                                   labelText: S.of(context).phoneNumber,
                                 )),

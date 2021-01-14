@@ -1,35 +1,38 @@
+import 'package:flutter/cupertino.dart';
+import 'package:world_wisdom/generated/l10n.dart';
+
 class Validator {
-  static String validateEmail(String username) {
+  static String validateEmail(BuildContext context, String username) {
     RegExp regExp = new RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
 
     return username.isEmpty
-        ? "Username can not be empty"
+        ? S.of(context).emptyEmailError
         : regExp.hasMatch(username)
             ? null
-            : "Invalid Email";
+            : S.of(context).invalidEmail;
   }
 
-  static String validatePassword(String password) {
-    return password.isEmpty ? "Password cannot be empty" : null;
+  static String validatePassword(BuildContext context, String password) {
+    return password.isEmpty ? S.of(context).emptyPasswordError : null;
   }
 
-  static String validateUrl(String url) {
-    return Uri.parse(url).isAbsolute ? null : "Invalid url";
+  static String validateUrl(BuildContext context, String url) {
+    return Uri.parse(url).isAbsolute ? null : S.of(context).invalidUrl;
   }
 
-  static String validatePhone(String phoneNumber) {
+  static String validatePhone(BuildContext context, String phoneNumber) {
     return phoneNumber.isEmpty
-        ? "Phone number cannot be empty"
+        ? S.of(context).emptyPhoneNumberError
         : phoneNumber.length > 10
-            ? "Phone number cannot be > 10 digits"
+            ? S.of(context).tooLongPhoneNumber
             : null;
   }
 
-  static String validateUsername(String username) {
+  static String validateUsername(BuildContext context, String username) {
     return username.isEmpty
-        ? "Username cannot be empty"
+        ? S.of(context).emptyUsernameError
         : username.contains(" ")
-            ? "Username cannot have blank characters"
+            ? S.of(context).blankCharacterUserNameError
             : null;
   }
 }

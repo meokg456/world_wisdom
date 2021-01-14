@@ -922,6 +922,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                 .then((value) {
                                               setState(() {
                                                 isRegistered = value;
+                                                fetchCourseData(
+                                                    courseDetail.id);
                                               });
                                               Navigator.of(context).pop();
                                             });

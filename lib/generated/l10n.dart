@@ -944,6 +944,86 @@ class S {
       args: [],
     );
   }
+
+  /// `Username can not be empty`
+  String get emptyUsernameError {
+    return Intl.message(
+      'Username can not be empty',
+      name: 'emptyUsernameError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Email can not be empty`
+  String get emptyEmailError {
+    return Intl.message(
+      'Email can not be empty',
+      name: 'emptyEmailError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invalid Email`
+  String get invalidEmail {
+    return Intl.message(
+      'Invalid Email',
+      name: 'invalidEmail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Password cannot be empty`
+  String get emptyPasswordError {
+    return Intl.message(
+      'Password cannot be empty',
+      name: 'emptyPasswordError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invalid url`
+  String get invalidUrl {
+    return Intl.message(
+      'Invalid url',
+      name: 'invalidUrl',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Phone number cannot be empty`
+  String get emptyPhoneNumberError {
+    return Intl.message(
+      'Phone number cannot be empty',
+      name: 'emptyPhoneNumberError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Phone number cannot be > 10 digits`
+  String get tooLongPhoneNumber {
+    return Intl.message(
+      'Phone number cannot be > 10 digits',
+      name: 'tooLongPhoneNumber',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Username cannot have blank characters`
+  String get blankCharacterUserNameError {
+    return Intl.message(
+      'Username cannot have blank characters',
+      name: 'blankCharacterUserNameError',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

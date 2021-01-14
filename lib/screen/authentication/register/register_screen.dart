@@ -69,7 +69,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                   controller: _usernameController,
                   textInputAction: TextInputAction.next,
-                  validator: Validator.validateUsername,
+                  validator: (text) {
+                    return Validator.validateUsername(context, text);
+                  },
                   keyboardType: TextInputType.name,
                   decoration: InputDecoration(
                     labelText: S.of(context).usernameRegister,
@@ -77,7 +79,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                   controller: _emailController,
                   textInputAction: TextInputAction.next,
-                  validator: Validator.validateEmail,
+                  validator: (text) {
+                    return Validator.validateEmail(context, text);
+                  },
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: "Email",
@@ -85,7 +89,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                   controller: _phoneController,
                   textInputAction: TextInputAction.next,
-                  validator: Validator.validatePhone,
+                  validator: (text) {
+                    return Validator.validatePhone(context, text);
+                  },
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     labelText: S.of(context).phoneNumber,
@@ -93,7 +99,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  validator: Validator.validatePassword,
+                  validator: (text) {
+                    return Validator.validatePassword(context, text);
+                  },
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                       labelText: S.of(context).password,
