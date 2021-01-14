@@ -64,6 +64,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (response.statusCode == 200) {
       UserModel userModel = UserModel.fromJson(jsonDecode(response.body));
       authenticationModel.setAuthenticationModel(userModel);
+      setState(() {
+        isEditing = false;
+      });
     }
     if (response.statusCode == 401) {
       Handler.unauthorizedHandler(context);

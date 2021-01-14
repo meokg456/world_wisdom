@@ -188,14 +188,15 @@ class _LoginScreenState extends State<LoginScreen> {
         }),
         headers: {"Content-Type": "application/json"});
     print(response.body);
-    UserModel userModel = UserModel.fromJson(jsonDecode(response.body));
     if (response.statusCode == 200) {
+      UserModel userModel = UserModel.fromJson(jsonDecode(response.body));
       Provider.of<AuthenticationModel>(context, listen: false)
           .setAuthenticationModel(userModel);
       SharedPreferences sharedPreferences =
           await SharedPreferences.getInstance();
       sharedPreferences.setString("token", userModel.token);
       Navigator.pop(context);
+      return;
     }
     if (response.statusCode == 400) {
       setState(() {
