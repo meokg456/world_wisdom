@@ -12,8 +12,16 @@ class DatabaseConnector {
             "data TEXT"
             ")");
         db.execute("CREATE TABLE videos("
-            "lessonId TEXT PRIMARY KEY,"
+            "id TEXT PRIMARY KEY,"
             "videoPath TEXT"
+            ")");
+        db.execute("CREATE TABLE lastWatchLesson("
+            "courseId TEXT PRIMARY KEY,"
+            "data TEXT"
+            ")");
+        db.execute("CREATE TABLE images("
+            "courseId TEXT PRIMARY KEY,"
+            "imagePath TEXT"
             ")");
       },
       version: 1,

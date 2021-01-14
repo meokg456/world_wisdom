@@ -9,6 +9,8 @@ import 'package:world_wisdom/model/authentication_model/authentication_model.dar
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
+import 'package:world_wisdom/model/course_model/favorite_courses/favorite_courses_model.dart';
+import 'package:world_wisdom/model/course_model/my_courses/my_courses_model.dart';
 import 'package:world_wisdom/screen/constants/constants.dart';
 import 'package:world_wisdom/screen/course/course_list/course_list_data.dart';
 import 'package:world_wisdom/screen/key/key.dart';
@@ -44,6 +46,18 @@ class _HomeTabState extends State<HomeTab> {
         headers: {"Content-Type": "application/json"});
     if (response.statusCode == 200) {
       print(response.body);
+      return CourseModel.fromJson(jsonDecode(response.body));
+    }
+    return CourseModel(courses: []);
+  }
+
+  Future<CourseModel> fetchMyCoursesData(String token) async {
+    var response = await http.get("${Constants.apiUrl}/payment", headers: {
+      "Authorization": "Bearer $token",
+      "Content-Type": "application/json"
+    });
+    print(response.body);
+    if (response.statusCode == 200) {
       return CourseModel.fromJson(jsonDecode(response.body));
     }
     return CourseModel(courses: []);
@@ -103,7 +117,9 @@ class _HomeTabState extends State<HomeTab> {
   Widget build(BuildContext context) {
     AuthenticationModel authenticationModel =
         Provider.of<AuthenticationModel>(context);
-    favoriteCourse = Provider.of<CourseModel>(context);
+    FavoriteCoursesModel favoriteCourseModel =
+        Provider.of<FavoriteCoursesModel>(context);
+    MyCoursesModel myCoursesModel = Provider.of<MyCoursesModel>(context);
 
     if (authenticationModel.isLoggedIn && isLoaded == false) {
       isLoaded = true;
@@ -130,7 +146,10 @@ class _HomeTabState extends State<HomeTab> {
         });
       });
       fetchFavoriteCoursesData(authenticationModel.token).then((value) {
-        favoriteCourse.setCourseModel(value);
+        favoriteCourseModel.setCourseModel(value);
+      });
+      fetchMyCoursesData(authenticationModel.token).then((value) {
+        myCoursesModel.setCourseModel(value);
       });
     }
 
@@ -149,21 +168,21 @@ class _HomeTabState extends State<HomeTab> {
                         Keys.mainNavigatorKey.currentState
                             .pushNamed("/course-list", arguments: data);
                       }),
-                      HorizontalCoursesList(trendingCourse),
+                      HorizontalCoursesList(trendingCourse.courses),
                       HorizontalCoursesListHeader(S.of(context).topNew, () {
                         CourseListData data = CourseListData(
                             S.of(context).topNew, fetchTopNewCourseData);
                         Keys.mainNavigatorKey.currentState
                             .pushNamed("/course-list", arguments: data);
                       }),
-                      HorizontalCoursesList(newCourse),
+                      HorizontalCoursesList(newCourse.courses),
                       HorizontalCoursesListHeader(S.of(context).topRate, () {
                         CourseListData data = CourseListData(
                             S.of(context).topRate, fetchTopRateCourseData);
                         Keys.mainNavigatorKey.currentState
                             .pushNamed("/course-list", arguments: data);
                       }),
-                      HorizontalCoursesList(bestCourse),
+                      HorizontalCoursesList(bestCourse.courses),
                       HorizontalCoursesListHeader(
                           S.of(context).recommendedForYou, () {
                         CourseListData data = CourseListData(
@@ -174,7 +193,7 @@ class _HomeTabState extends State<HomeTab> {
                         Keys.mainNavigatorKey.currentState
                             .pushNamed("/course-list", arguments: data);
                       }),
-                      HorizontalCoursesList(recommendedForYouCourse),
+                      HorizontalCoursesList(recommendedForYouCourse.courses),
                       SizedBox(
                         height: 10,
                       ),
@@ -187,7 +206,20 @@ class _HomeTabState extends State<HomeTab> {
                       SizedBox(
                         height: 10,
                       ),
-                      HorizontalCoursesList(favoriteCourse),
+                      HorizontalCoursesList(favoriteCourseModel.courses),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            S.of(context).myCourses,
+                            style: Theme.of(context).textTheme.headline6,
+                          )),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      HorizontalCoursesList(myCoursesModel.courses),
                     ],
                   ),
                 ],

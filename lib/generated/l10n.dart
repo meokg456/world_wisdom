@@ -854,6 +854,16 @@ class S {
       args: [],
     );
   }
+
+  /// `My courses`
+  String get myCourses {
+    return Intl.message(
+      'My courses',
+      name: 'myCourses',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

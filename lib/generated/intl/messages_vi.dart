@@ -62,6 +62,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "invalidPasswordOrUsername" : MessageLookupByLibrary.simpleMessage("Tên đăng nhập hoặc mật khẩu không hợp lệ"),
     "leaveRate" : MessageLookupByLibrary.simpleMessage("Đánh giá"),
     "like" : MessageLookupByLibrary.simpleMessage("Thích"),
+    "myCourses" : MessageLookupByLibrary.simpleMessage("Khóa học của tôi"),
     "name" : MessageLookupByLibrary.simpleMessage("Tên"),
     "password" : MessageLookupByLibrary.simpleMessage("Mật khẩu"),
     "passwordNotMatch" : MessageLookupByLibrary.simpleMessage("Xác nhận mật khẩu không trùng khớp"),

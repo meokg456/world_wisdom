@@ -80,6 +80,6 @@ class Lesson {
         "createdAt": createdAt.toIso8601String(),
         "updatedAt": updatedAt.toIso8601String(),
         "currentProgress": currentProgress,
-        "lesson": List<dynamic>.from(exercises.map((x) => x.toJson())),
+        "exercises": List<dynamic>.from(exercises.map((x) => x.toJson())),
       };
 }

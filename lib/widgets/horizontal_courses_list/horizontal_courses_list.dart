@@ -8,9 +8,9 @@ import 'package:world_wisdom/screen/key/key.dart';
 import 'package:world_wisdom/widgets/horizontal_courses_list/horizontal_courses_list_item.dart';
 
 class HorizontalCoursesList extends StatelessWidget {
-  final CourseModel courseModel;
+  final List<Course> courses;
 
-  HorizontalCoursesList(this.courseModel);
+  HorizontalCoursesList(this.courses);
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +18,9 @@ class HorizontalCoursesList extends StatelessWidget {
         height: 220,
         child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: courseModel.courses.length,
+            itemCount: courses.length,
             itemBuilder: (context, index) {
-              Course course = courseModel.courses[index];
+              Course course = courses[index];
               return HorizontalCoursesListItem(course);
             }));
   }

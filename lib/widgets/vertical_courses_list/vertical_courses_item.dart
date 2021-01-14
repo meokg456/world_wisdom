@@ -3,6 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
+import 'package:world_wisdom/model/course_model/course_detail.dart';
 import 'package:world_wisdom/screen/course/course_list/course_list_screen.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 
@@ -17,8 +18,10 @@ class VerticalCoursesListItem extends StatelessWidget {
     Duration duration = Duration(seconds: (course.totalHours * 3600).round());
     return ListTile(
       onTap: () {
-        Keys.mainNavigatorKey.currentState
-            .pushNamed("/course-detail", arguments: course.id);
+        Keys.mainNavigatorKey.currentState.pushNamedAndRemoveUntil(
+            "/course-detail",
+            (route) => route.settings.name == "/course-detail" ? false : true,
+            arguments: CourseDetail(id: course.id));
       },
       leading: course.imageUrl == null
           ? Image.asset(

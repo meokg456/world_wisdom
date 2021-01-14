@@ -62,6 +62,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "invalidPasswordOrUsername" : MessageLookupByLibrary.simpleMessage("Invalid password or username"),
     "leaveRate" : MessageLookupByLibrary.simpleMessage("Leave a rate"),
     "like" : MessageLookupByLibrary.simpleMessage("Like"),
+    "myCourses" : MessageLookupByLibrary.simpleMessage("My courses"),
     "name" : MessageLookupByLibrary.simpleMessage("Name"),
     "password" : MessageLookupByLibrary.simpleMessage("Password"),
     "passwordNotMatch" : MessageLookupByLibrary.simpleMessage("Confirm password does not match"),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -20,6 +21,8 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/model/course_model/course_detail_model.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
+import 'package:world_wisdom/model/course_model/downloaded_courses_model.dart';
+import 'package:world_wisdom/model/course_model/favorite_courses/favorite_courses_model.dart';
 import 'package:world_wisdom/model/exercise_model/exercises_in_lesson_model.dart';
 import 'package:world_wisdom/model/lesson_model/last_watched_lesson_model.dart';
 import 'package:world_wisdom/model/lesson_model/lesson.dart';
@@ -36,8 +39,13 @@ import 'package:world_wisdom/widgets/rating/rating_list_item.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class CourseDetailScreen extends StatefulWidget {
+  final CourseDetail courseDetail;
+
+  CourseDetailScreen(this.courseDetail);
+
   @override
-  _CourseDetailScreenState createState() => _CourseDetailScreenState();
+  _CourseDetailScreenState createState() =>
+      _CourseDetailScreenState(this.courseDetail);
 }
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
@@ -45,7 +53,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   VideoPlayerController videoPlayerController;
   AuthenticationModel authenticationModel;
   bool isLoading = true;
-  String courseId;
   CourseDetail courseDetail;
   Lesson currentLesson;
   int descriptionMaxLines = 2;
@@ -59,9 +66,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   bool isRatingExpanded = false;
   bool isUserRatingExpanded = false;
   double downloadRatio = 0;
-  //0 - not downloaded yet
-  //1 - downloaded
-  //2 - downloading
+
   bool isDownloaded = false;
   int totalVideos = 0;
   double learnedHours = 0;
@@ -71,16 +76,53 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   Timer videoControlTimer;
   YoutubePlayerController youtubePlayerController;
 
+  Map<String, int> receivedBytesMap = {};
+  Map<String, int> totalBytesMap = {};
+
+  _CourseDetailScreenState(CourseDetail courseDetail) {
+    this.courseDetail = courseDetail;
+  }
+
   void loadData() {
-    fetchCourseData(courseId);
+    checkOwnCourse(courseDetail.id);
+    checkLikeStatus(courseDetail.id);
+    fetchCourseData(courseDetail.id);
     userRating = Rating(
         formalityPoint: 0,
         presentationPoint: 0,
         contentPoint: 0,
-        courseId: courseId,
+        courseId: courseDetail.id,
         content: "");
-    checkOwnCourse(courseId);
-    checkLikeStatus(courseId);
+  }
+
+  Future<void> getVideoData(String courseId) async {
+    LastWatchedLessonModel lastLessonModel =
+        await getLastWatchedLesson(courseId);
+    learnedHours = 0;
+    for (int i = 0; i < courseDetail.sections.length; i++) {
+      Section section = courseDetail.sections[i];
+      for (int j = 0; j < section.lessons.length; j++) {
+        Lesson lesson = section.lessons[j];
+
+        VideoProgressModel videoProgressModel =
+            await getVideoInfo(courseId, lesson.id);
+
+        lesson.currentProgress = videoProgressModel.payload;
+        if (lesson.currentProgress.isFinish) {
+          learnedHours += lesson.hours;
+        } else {
+          learnedHours += lesson.currentProgress.currentTime / 3600;
+        }
+        if (lastLessonModel.payload.lessonId == lesson.id) {
+          section.isExpanded = true;
+          selectLesson(lesson);
+        }
+
+        ExercisesInLessonModel exercisesInLessonModel =
+            await fetchExercisesInLesson(lesson.id);
+        lesson.exercises = exercisesInLessonModel.payload.exercises;
+      }
+    }
   }
 
   void fetchCourseData(String courseId) async {
@@ -93,36 +135,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     if (response.statusCode == 200) {
       courseDetail =
           CourseDetailModel.fromJson(jsonDecode(response.body)).payload;
-      if (!isRegistered)
-        loadVideoPlayer(courseDetail.promoVidUrl, Duration());
-      else {
-        LastWatchedLessonModel lastLessonModel =
-            await getLastWatchedLesson(courseId);
-        learnedHours = 0;
-        for (int i = 0; i < courseDetail.sections.length; i++) {
-          Section section = courseDetail.sections[i];
-          for (int j = 0; j < section.lessons.length; j++) {
-            Lesson lesson = section.lessons[j];
 
-            VideoProgressModel videoProgressModel =
-                await getVideoInfo(courseId, lesson.id);
-
-            lesson.currentProgress = videoProgressModel.payload;
-            if (lesson.currentProgress.isFinish) {
-              learnedHours += lesson.hours;
-            } else {
-              learnedHours += lesson.currentProgress.currentTime / 3600;
-            }
-            if (lastLessonModel.payload.lessonId == lesson.id) {
-              section.isExpanded = true;
-              selectLesson(lesson);
-            }
-
-            ExercisesInLessonModel exercisesInLessonModel =
-                await fetchExercisesInLesson(lesson.id);
-            lesson.exercises = exercisesInLessonModel.payload.exercises;
-          }
-        }
+      loadVideoPlayer(courseDetail.promoVidUrl, Duration());
+      if (isRegistered) {
+        getVideoData(courseId);
       }
     } else {
       videoControlTimer.cancel();
@@ -157,7 +173,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     print(response.body);
     if (response.statusCode == 200) {
       var response = await http.get(
-          "${Constants.apiUrl}/course/get-course-detail/$courseId/${authenticationModel.user == null ? "null" : authenticationModel.user.id}");
+          "${Constants.apiUrl}/course/get-course-detail/${courseDetail.id}/${authenticationModel.user == null ? "null" : authenticationModel.user.id}");
       print(response.body);
       if (response.statusCode == 200) {
         CourseDetail data =
@@ -280,24 +296,29 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return null;
   }
 
-  void downloadVideo(String url, String lessonId) async {
+  Future<void> downloadVideo(String url, String fileName) async {
     if (!url.contains(".mp4")) return;
     Dio dio = Dio();
     totalVideos++;
 
     try {
       var dir = await getApplicationDocumentsDirectory();
-      database.insert("videos",
-          {"lessonId": lessonId, "videoPath": "${dir.path}/$lessonId.mp4"});
-      await dio.download(url, "${dir.path}/$lessonId.mp4",
-          onReceiveProgress: (rec, total) {
+      String videoPath = path.join(dir.path, "$fileName.mp4");
+      database.insert("videos", {"id": fileName, "videoPath": videoPath});
+      await dio.download(url, videoPath, onReceiveProgress: (rec, total) {
+        receivedBytesMap[fileName] = rec;
+        totalBytesMap[fileName] = total;
+
+        int receivedBytes = 0;
+        int totalBytes = 0;
+        receivedBytesMap.values.forEach((element) {
+          receivedBytes += element;
+        });
+        totalBytesMap.values.forEach((element) {
+          totalBytes += element;
+        });
         setState(() {
-          downloadRatio = rec / total / totalVideos;
-          if (downloadRatio == 1) {
-            setState(() {
-              isDownloaded = true;
-            });
-          }
+          downloadRatio = receivedBytes / totalBytes;
         });
       });
     } catch (e) {
@@ -305,19 +326,62 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     }
   }
 
-  void downloadCourse() {
-    database.insert("courses",
-        {"id": courseDetail.id, "data": jsonEncode(courseDetail.toJson())});
-    courseDetail.sections.forEach((section) {
-      section.lessons.forEach((lesson) {
-        downloadVideo(lesson.currentProgress.videoUrl, lesson.id);
+  Future<void> downloadImage(String url, String fileName) async {
+    Dio dio = Dio();
+
+    try {
+      var dir = await getApplicationDocumentsDirectory();
+      String ext = path.extension(url);
+      String imagePath = path.join(dir.path, "$fileName$ext");
+      database.insert("images", {"courseId": fileName, "imagePath": imagePath});
+      await dio.download(url, imagePath, onReceiveProgress: (rec, total) {
+        receivedBytesMap["$fileName-img"] = rec;
+        totalBytesMap["$fileName-img"] = total;
+
+        int receivedBytes = 0;
+        int totalBytes = 0;
+        receivedBytesMap.values.forEach((element) {
+          receivedBytes += element;
+        });
+        totalBytesMap.values.forEach((element) {
+          totalBytes += element;
+        });
+        setState(() {
+          downloadRatio = receivedBytes / totalBytes;
+        });
       });
-    });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void downloadCourse() async {
+    var dir = await getApplicationDocumentsDirectory();
+    downloadVideo(courseDetail.promoVidUrl, courseDetail.id);
+    downloadImage(courseDetail.imageUrl, courseDetail.id);
+    String ext = path.extension(courseDetail.imageUrl);
+    courseDetail.imageUrl = path.join(dir.path, "${courseDetail.id}$ext");
+    courseDetail.promoVidUrl = path.join(dir.path, "${courseDetail.id}.mp4");
+    if (currentLesson != null)
+      database.insert("lastWatchLesson",
+          {"courseId": courseDetail.id, "data": jsonEncode(currentLesson)});
+    for (var section in courseDetail.sections) {
+      for (var lesson in section.lessons) {
+        downloadVideo(lesson.currentProgress.videoUrl, lesson.id);
+        lesson.currentProgress.videoUrl =
+            path.join(dir.path, "${lesson.id}.mp4");
+      }
+    }
+    await database.insert("courses",
+        {"id": courseDetail.id, "data": jsonEncode(courseDetail.toJson())});
+    Provider.of<DownloadedCoursesModel>(context, listen: false)
+        .add(courseDetail);
   }
 
   @override
   void initState() {
     super.initState();
+
     videoControlTimer = Timer(Duration(seconds: 2), () {
       setState(() {
         if (videoPlayerController != null) if (videoPlayerController
@@ -332,7 +396,29 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
     SchedulerBinding.instance.addPostFrameCallback((timeStamp) async {
       database = await DatabaseConnector.database;
-      loadData();
+      if (!isDownloaded) {
+        loadData();
+      } else {
+        setState(() {
+          isLoading = false;
+          isRegistered = true;
+        });
+        var lastWatchLessons = await database.query("lastWatchLesson",
+            where: "courseId = ?", whereArgs: [courseDetail.id]);
+        Lesson lastWatchLesson;
+        for (var lesson in lastWatchLessons)
+          lastWatchLesson = Lesson.fromJson(jsonDecode(lesson["data"]));
+        for (var section in courseDetail.sections) {
+          for (var lesson in section.lessons) {
+            if (lesson.id == lastWatchLesson.id) {
+              setState(() {
+                section.isExpanded = true;
+                selectLesson(lesson);
+              });
+            }
+          }
+        }
+      }
     });
   }
 
@@ -379,6 +465,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   void updateVideoPlayer() {
     double ratio = videoPlayerController.value.position.inSeconds /
         videoPlayerController.value.duration.inSeconds;
+    print(videoPlayerController.value.position.inMilliseconds);
     if (ratio == 1) {
       videoControlTimer.cancel();
       setState(() {
@@ -405,14 +492,23 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   void loadVideoPlayer(String videoUrl, Duration start) {
     if (videoPlayerController != null) {
       videoPlayerController.pause();
-      videoPlayerController.dispose();
-    }
+      VideoPlayerController old = videoPlayerController;
+      setState(() {
+        videoPlayerController = null;
+      });
 
-    setState(() {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        old.dispose();
+      });
+    }
+    if (isDownloaded)
+      videoPlayerController = VideoPlayerController.file(File(videoUrl));
+    else
       videoPlayerController = VideoPlayerController.network(videoUrl);
+    setState(() {
       try {
-        initialize = videoPlayerController.initialize().whenComplete(() {
-          if (videoPlayerController.value.duration != null) {
+        initialize = videoPlayerController.initialize().then((value) {
+          if (videoPlayerController.value.position != null) {
             videoPlayerController.addListener(updateVideoPlayer);
             videoPlayerController.seekTo(start);
           }
@@ -482,6 +578,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void selectLesson(Lesson lesson) {
+    if (lesson == null) return;
     String videoId =
         YoutubePlayer.convertUrlToId(lesson.currentProgress.videoUrl);
 
@@ -523,6 +620,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       future: initialize,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
+            videoPlayerController != null &&
             videoPlayerController.value.duration != null) {
           // If the VideoPlayerController has finished initialization, use
           // the data it provides to limit the aspect ratio of the VideoPlayer.
@@ -718,10 +816,18 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    CourseModel favoriteCourseModel =
-        Provider.of<CourseModel>(context, listen: false);
+    FavoriteCoursesModel favoriteCourseModel =
+        Provider.of<FavoriteCoursesModel>(context, listen: false);
+    CourseDetail downloadedCourse =
+        context.select((DownloadedCoursesModel model) {
+      return model.find(courseDetail.id);
+    });
+    if (downloadedCourse != null) {
+      isDownloaded = true;
+      courseDetail = downloadedCourse;
+    }
     authenticationModel = Provider.of<AuthenticationModel>(context);
-    courseId = ModalRoute.of(context).settings.arguments;
+
     return WillPopScope(
       onWillPop: onPop,
       child: isLoading
@@ -880,7 +986,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                               favoriteCourseModel.add(course);
                                             } else {
                                               favoriteCourseModel
-                                                  .remove(courseId);
+                                                  .remove(courseDetail.id);
                                             }
                                           });
                                         },
@@ -910,7 +1016,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                             alignment: Alignment.center,
                                             children: [
                                               IconButton(
-                                                  icon: isDownloaded
+                                                  icon: downloadedCourse != null
                                                       ? Icon(
                                                           Icons
                                                               .download_done_rounded,
@@ -930,7 +1036,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                                   value: downloadRatio),
                                             ]),
                                         onTap: () {
-                                          downloadCourse();
+                                          if (downloadedCourse == null) {
+                                            downloadCourse();
+                                          }
                                         },
                                         customBorder: CircleBorder(),
                                       ),
@@ -1173,6 +1281,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                 }).toList(),
                               ),
                               currentLesson == null ||
+                                      currentLesson.exercises == null ||
                                       currentLesson.exercises.length == 0
                                   ? SizedBox()
                                   : ExpansionPanelList(
@@ -1508,8 +1617,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               SizedBox(
                                 height: 20,
                               ),
-                              HorizontalCoursesList(CourseModel(
-                                  courses: courseDetail.coursesLikeCategory))
+                              HorizontalCoursesList(
+                                  courseDetail.coursesLikeCategory)
                             ],
                           ),
                         ),

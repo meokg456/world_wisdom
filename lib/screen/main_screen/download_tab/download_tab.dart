@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
@@ -32,16 +34,17 @@ class _DownloadTabState extends State<DownloadTab> {
                       Duration(seconds: (course.totalHours * 3600).round());
                   return ListTile(
                     onTap: () {
-                      Keys.mainNavigatorKey.currentState
-                          .pushNamed("/course-detail", arguments: course.id);
+                      Keys.mainNavigatorKey.currentState.pushNamed(
+                          "/course-detail",
+                          arguments: CourseDetail(id: course.id));
                     },
                     leading: course.imageUrl == null
                         ? Image.asset(
                             "resources/images/online-course.png",
                             width: 70,
                           )
-                        : Image.network(
-                            course.imageUrl,
+                        : Image.file(
+                            File(course.imageUrl),
                             width: 70,
                           ),
                     title: Column(

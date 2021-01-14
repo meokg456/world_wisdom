@@ -141,8 +141,8 @@ class _BrowseTabState extends State<BrowseTab> {
                       .pushNamed("/course-list", arguments: data);
                 }),
                 HorizontalCoursesList(coursesMap[category.id] != null
-                    ? coursesMap[category.id]
-                    : CourseModel(courses: []))
+                    ? coursesMap[category.id].courses
+                    : [])
               ],
             );
           }),

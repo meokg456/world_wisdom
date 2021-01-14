@@ -13,4 +13,13 @@ class DownloadedCoursesModel extends ChangeNotifier {
     courses.addAll(courses);
     notifyListeners();
   }
+
+  CourseDetail find(String courseId) {
+    for (CourseDetail course in courses) {
+      if (course.id == courseId) {
+        return course;
+      }
+    }
+    return null;
+  }
 }

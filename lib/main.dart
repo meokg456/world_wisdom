@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/course_model/course_model.dart';
 import 'package:world_wisdom/model/course_model/downloaded_courses_model.dart';
+import 'package:world_wisdom/model/course_model/favorite_courses/favorite_courses_model.dart';
+import 'package:world_wisdom/model/course_model/my_courses/my_courses_model.dart';
 import 'package:world_wisdom/screen/authentication/forget_password/forget_password_screen.dart';
 import 'package:world_wisdom/screen/authentication/login_screen/login_screen.dart';
 import 'package:world_wisdom/screen/authentication/register/register_screen.dart';
@@ -107,7 +109,8 @@ class _WorldWisdomState extends State<WorldWisdom> {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthenticationModel()),
         ChangeNotifierProvider(create: (context) => AppMode()),
-        ChangeNotifierProvider(create: (context) => CourseModel(courses: [])),
+        ChangeNotifierProvider(create: (context) => FavoriteCoursesModel()),
+        ChangeNotifierProvider(create: (context) => MyCoursesModel()),
         ChangeNotifierProvider(create: (context) => DownloadedCoursesModel()),
       ],
       child: WorldWisdomApp(),

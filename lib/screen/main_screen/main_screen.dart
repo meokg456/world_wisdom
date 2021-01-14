@@ -90,7 +90,8 @@ class _MainScreenState extends State<MainScreen> {
                 builder = (BuildContext context) => CourseListScreen();
                 break;
               case '/course-detail':
-                builder = (BuildContext context) => CourseDetailScreen();
+                builder = (BuildContext context) =>
+                    CourseDetailScreen(settings.arguments);
                 break;
               default:
                 throw Exception('Invalid route: ${settings.name}');

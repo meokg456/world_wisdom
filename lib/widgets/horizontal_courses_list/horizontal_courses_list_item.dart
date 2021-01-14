@@ -3,6 +3,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 import 'package:world_wisdom/generated/l10n.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
+import 'package:world_wisdom/model/course_model/course_detail.dart';
 import 'package:world_wisdom/screen/key/key.dart';
 
 class HorizontalCoursesListItem extends StatelessWidget {
@@ -19,7 +20,7 @@ class HorizontalCoursesListItem extends StatelessWidget {
           await Keys.mainNavigatorKey.currentState.pushNamedAndRemoveUntil(
               "/course-detail",
               (route) => route.settings.name == "/course-detail" ? false : true,
-              arguments: course.id) as Course;
+              arguments: CourseDetail(id: course.id));
         },
         child: Card(
           child: Container(
@@ -29,12 +30,19 @@ class HorizontalCoursesListItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.network(
-                    course.imageUrl,
-                    width: double.infinity,
-                    height: 100,
-                    fit: BoxFit.fill,
-                  ),
+                  course.imageUrl == null
+                      ? Image.asset(
+                          "resources/images/online-course.png",
+                          width: double.infinity,
+                          height: 100,
+                          fit: BoxFit.fill,
+                        )
+                      : Image.network(
+                          course.imageUrl,
+                          width: double.infinity,
+                          height: 100,
+                          fit: BoxFit.fill,
+                        ),
                   SizedBox(
                     height: 10,
                   ),

@@ -80,5 +80,6 @@
   "rateSuccess" : "Rated successfully!",
   "thankYou": "Thank you :)",
   "gotIt": "Got it!",
-  "rates": "Rates"
+  "rates": "Rates",
+  "myCourses" :"My courses"
 }
