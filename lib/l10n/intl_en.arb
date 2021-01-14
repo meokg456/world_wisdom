@@ -87,5 +87,7 @@
   "contact" : "Contact",
   "aboutUs" : "About us",
   "contactInfo": "Author: Nguyen Huu Dung\nEmail: meokg456@gmail.com",
-  "appVersion" : "App version"
+  "appVersion" : "App version",
+  "downloadDenied": "Download denied",
+  "downloadDeniedMessage": "You can't download course which have youtube video"
 }

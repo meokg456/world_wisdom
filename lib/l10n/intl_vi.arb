@@ -87,5 +87,7 @@
   "contact" : "Liên hệ",
   "aboutUs" : "Thông tin về chúng tôi",
   "contactInfo": "Tác giả: Nguyen Huu Dung\nEmail: meokg456@gmail.com",
-  "appVersion" : "Phiên bản"
+  "appVersion" : "Phiên bản",
+  "downloadDenied": "Không thể tải",
+  "downloadDeniedMessage": "Bạn không thể tải khóa học có video youtube"
 }

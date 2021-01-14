@@ -380,6 +380,31 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void downloadCourse() async {
+    for (var section in courseDetail.sections) {
+      for (var lesson in section.lessons) {
+        if (lesson.currentProgress.videoUrl.contains("youtube")) {
+          showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                    insetPadding:
+                        EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    title: Text(S.of(context).downloadDenied),
+                    content: Text(S.of(context).downloadDeniedMessage),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text(S.of(context).gotIt),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ));
+          return;
+        }
+      }
+    }
     var dir = await getApplicationDocumentsDirectory();
     downloadVideo(courseDetail.promoVidUrl, courseDetail.id);
     downloadImage(courseDetail.imageUrl, courseDetail.id);

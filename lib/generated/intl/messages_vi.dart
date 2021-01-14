@@ -46,6 +46,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "darkMode" : MessageLookupByLibrary.simpleMessage("Chế độ ban đêm"),
     "descriptions" : MessageLookupByLibrary.simpleMessage("Mô tả"),
     "download" : MessageLookupByLibrary.simpleMessage("Tải xuống"),
+    "downloadDenied" : MessageLookupByLibrary.simpleMessage("Không thể tải"),
+    "downloadDeniedMessage" : MessageLookupByLibrary.simpleMessage("Bạn không thể tải khóa học có video youtube"),
     "downloadDescriptions" : MessageLookupByLibrary.simpleMessage("Tải khóa học để có thể xem ngay cả khi ngoại tuyến."),
     "downloadGuideHint" : MessageLookupByLibrary.simpleMessage("Làm sao để tải khóa học?"),
     "downloadHint" : MessageLookupByLibrary.simpleMessage("Xem các khóa học mọi lúc mọi nơi!"),

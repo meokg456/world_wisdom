@@ -46,6 +46,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "darkMode" : MessageLookupByLibrary.simpleMessage("Dark mode"),
     "descriptions" : MessageLookupByLibrary.simpleMessage("Descriptions"),
     "download" : MessageLookupByLibrary.simpleMessage("Download"),
+    "downloadDenied" : MessageLookupByLibrary.simpleMessage("Download denied"),
+    "downloadDeniedMessage" : MessageLookupByLibrary.simpleMessage("You can\'t download course which have youtube video"),
     "downloadDescriptions" : MessageLookupByLibrary.simpleMessage("Download courses so you can continue to skill up-even when you\'re offline."),
     "downloadGuideHint" : MessageLookupByLibrary.simpleMessage("How to download courses"),
     "downloadHint" : MessageLookupByLibrary.simpleMessage("Watch your courses on the go!"),

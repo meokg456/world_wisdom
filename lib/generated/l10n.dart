@@ -924,6 +924,26 @@ class S {
       args: [],
     );
   }
+
+  /// `Download denied`
+  String get downloadDenied {
+    return Intl.message(
+      'Download denied',
+      name: 'downloadDenied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You can't download course which have youtube video`
+  String get downloadDeniedMessage {
+    return Intl.message(
+      'You can\'t download course which have youtube video',
+      name: 'downloadDeniedMessage',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
