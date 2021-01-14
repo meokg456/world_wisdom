@@ -770,9 +770,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                             } else {
                               enterFullScreen();
                             }
-                            setState(() {
-                              isFullScreen = !isFullScreen;
-                            });
                           },
                         ),
                       ),
