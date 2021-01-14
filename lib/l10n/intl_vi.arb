@@ -81,5 +81,11 @@
   "thankYou": "Cảm ơn bạn :)",
   "gotIt": "Got it!",
   "rates": "Bình chọn",
-  "myCourses" :"Khóa học của tôi"
+  "myCourses" :"Khóa học của tôi",
+  "language": "Ngôn ngữ",
+  "currentLanguageSubtitle": "Tiếng việt",
+  "contact" : "Liên hệ",
+  "aboutUs" : "Thông tin về chúng tôi",
+  "contactInfo": "Tác giả: Nguyen Huu Dung\nEmail: meokg456@gmail.com",
+  "appVersion" : "Phiên bản"
 }

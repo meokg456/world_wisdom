@@ -5,6 +5,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
 
 import 'package:world_wisdom/generated/l10n.dart';
+import 'package:world_wisdom/handler/handler.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
@@ -60,6 +61,9 @@ class _HomeTabState extends State<HomeTab> {
     if (response.statusCode == 200) {
       return CourseModel.fromJson(jsonDecode(response.body));
     }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
+    }
     return CourseModel(courses: []);
   }
 
@@ -94,6 +98,9 @@ class _HomeTabState extends State<HomeTab> {
     print(response.body);
     if (response.statusCode == 200) {
       return CourseModel.fromJson(jsonDecode(response.body));
+    }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
     }
     return CourseModel(courses: []);
   }

@@ -21,9 +21,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static _notInlinedMessages(_) => <String, Function> {
+    "aboutUs" : MessageLookupByLibrary.simpleMessage("About us"),
     "achievement" : MessageLookupByLibrary.simpleMessage("Achievement"),
     "all" : MessageLookupByLibrary.simpleMessage("All"),
     "appHint" : MessageLookupByLibrary.simpleMessage("Online courses\n for students"),
+    "appVersion" : MessageLookupByLibrary.simpleMessage("App version"),
     "avatarUrl" : MessageLookupByLibrary.simpleMessage("Avatar URL"),
     "browse" : MessageLookupByLibrary.simpleMessage("Browse"),
     "browseEncourage" : MessageLookupByLibrary.simpleMessage("Keep your skills up-to-date with access to thousands of courses by industry experts"),
@@ -34,10 +36,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "comments" : MessageLookupByLibrary.simpleMessage("Comments"),
     "confirm" : MessageLookupByLibrary.simpleMessage("Confirm"),
     "confirmPassword" : MessageLookupByLibrary.simpleMessage("Confirm password"),
+    "contact" : MessageLookupByLibrary.simpleMessage("Contact"),
+    "contactInfo" : MessageLookupByLibrary.simpleMessage("Author: Nguyen Huu Dung\nEmail: meokg456@gmail.com"),
     "contactSupport" : MessageLookupByLibrary.simpleMessage("Contact support"),
     "contentPoint" : MessageLookupByLibrary.simpleMessage("Content point"),
     "courses" : MessageLookupByLibrary.simpleMessage("Courses"),
     "coursesNotFound" : MessageLookupByLibrary.simpleMessage("Sorry, we couldn\'t find any course matches for"),
+    "currentLanguageSubtitle" : MessageLookupByLibrary.simpleMessage("English"),
     "darkMode" : MessageLookupByLibrary.simpleMessage("Dark mode"),
     "descriptions" : MessageLookupByLibrary.simpleMessage("Descriptions"),
     "download" : MessageLookupByLibrary.simpleMessage("Download"),
@@ -60,6 +65,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "instructorsNotFound" : MessageLookupByLibrary.simpleMessage("Sorry, we couldn\'t find any instructor matches for"),
     "invalidName" : MessageLookupByLibrary.simpleMessage("Name can\'t be empty"),
     "invalidPasswordOrUsername" : MessageLookupByLibrary.simpleMessage("Invalid password or username"),
+    "language" : MessageLookupByLibrary.simpleMessage("Language"),
     "leaveRate" : MessageLookupByLibrary.simpleMessage("Leave a rate"),
     "like" : MessageLookupByLibrary.simpleMessage("Like"),
     "myCourses" : MessageLookupByLibrary.simpleMessage("My courses"),

@@ -13,6 +13,7 @@ import 'package:share/share.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:video_player/video_player.dart';
 import 'package:world_wisdom/generated/l10n.dart';
+import 'package:world_wisdom/handler/handler.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/course_model/check_own_course_model.dart';
 import 'package:world_wisdom/model/course_model/course.dart';
@@ -161,6 +162,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         isLiked = json['likeStatus'] == null ? false : json['likeStatus'];
       });
     }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
+    }
   }
 
   void rateSubmit() async {
@@ -207,6 +211,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                 ],
               ));
     }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
+    }
   }
 
   Future<bool> likeCourse(String courseId) async {
@@ -220,6 +227,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     if (response.statusCode == 200) {
       Map json = jsonDecode(response.body);
       return json['likeStatus'] == null ? false : json['likeStatus'];
+    }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
     }
     return false;
   }
@@ -236,6 +246,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     if (response.statusCode == 200) {
       return ExercisesInLessonModel.fromJson(jsonDecode(response.body));
     }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
+    }
     return null;
   }
 
@@ -251,6 +264,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     if (response.statusCode == 200) {
       return true;
     }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
+    }
     return false;
   }
 
@@ -264,6 +280,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     print(response.body);
     if (response.statusCode == 200) {
       return LastWatchedLessonModel.fromJson(jsonDecode(response.body));
+    }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
     }
     return null;
   }
@@ -280,6 +299,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             .isUserOwnCourse;
       });
     }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
+    }
   }
 
   Future<VideoProgressModel> getVideoInfo(
@@ -292,6 +314,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       VideoProgressModel videoProgressModel =
           VideoProgressModel.fromJson(jsonDecode(response.body));
       return videoProgressModel;
+    }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
     }
     return null;
   }
@@ -448,7 +473,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             "Authorization": "Bearer ${authenticationModel.token}",
             "Content-Type": "application/json"
           });
-      print(response.body);
+      if (response.statusCode == 401) {
+        Handler.unauthorizedHandler(context);
+      }
     }
   }
 
@@ -459,13 +486,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           "Authorization": "Bearer ${authenticationModel.token}",
           "Content-Type": "application/json"
         });
-    print(response.body);
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
+    }
   }
 
   void updateVideoPlayer() {
     double ratio = videoPlayerController.value.position.inSeconds /
         videoPlayerController.value.duration.inSeconds;
-    print(videoPlayerController.value.position.inMilliseconds);
     if (ratio == 1) {
       videoControlTimer.cancel();
       setState(() {

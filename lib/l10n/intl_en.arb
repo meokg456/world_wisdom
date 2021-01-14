@@ -81,5 +81,11 @@
   "thankYou": "Thank you :)",
   "gotIt": "Got it!",
   "rates": "Rates",
-  "myCourses" :"My courses"
+  "myCourses" :"My courses",
+  "language": "Language",
+  "currentLanguageSubtitle": "English",
+  "contact" : "Contact",
+  "aboutUs" : "About us",
+  "contactInfo": "Author: Nguyen Huu Dung\nEmail: meokg456@gmail.com",
+  "appVersion" : "App version"
 }

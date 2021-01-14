@@ -21,9 +21,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static _notInlinedMessages(_) => <String, Function> {
+    "aboutUs" : MessageLookupByLibrary.simpleMessage("Thông tin về chúng tôi"),
     "achievement" : MessageLookupByLibrary.simpleMessage("Học được"),
     "all" : MessageLookupByLibrary.simpleMessage("Tất cả"),
     "appHint" : MessageLookupByLibrary.simpleMessage("Khóa học hay\n cho học sĩ"),
+    "appVersion" : MessageLookupByLibrary.simpleMessage("Phiên bản"),
     "avatarUrl" : MessageLookupByLibrary.simpleMessage("Đường dẫn ảnh đại diện"),
     "browse" : MessageLookupByLibrary.simpleMessage("Duyệt"),
     "browseEncourage" : MessageLookupByLibrary.simpleMessage("Không ngừng phát triển với hàng ngàn khóa học chất lượng"),
@@ -34,10 +36,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "comments" : MessageLookupByLibrary.simpleMessage("Lời bình luận"),
     "confirm" : MessageLookupByLibrary.simpleMessage("Xác nhận"),
     "confirmPassword" : MessageLookupByLibrary.simpleMessage("Xác nhận mật khẩu"),
+    "contact" : MessageLookupByLibrary.simpleMessage("Liên hệ"),
+    "contactInfo" : MessageLookupByLibrary.simpleMessage("Tác giả: Nguyen Huu Dung\nEmail: meokg456@gmail.com"),
     "contactSupport" : MessageLookupByLibrary.simpleMessage("Liên hệ hỗ trợ"),
     "contentPoint" : MessageLookupByLibrary.simpleMessage("Điểm nội dung"),
     "courses" : MessageLookupByLibrary.simpleMessage("Khóa học"),
     "coursesNotFound" : MessageLookupByLibrary.simpleMessage("Xin lỗi, chùng tôi không thể tìm thấy khóa học với từ khóa"),
+    "currentLanguageSubtitle" : MessageLookupByLibrary.simpleMessage("Tiếng việt"),
     "darkMode" : MessageLookupByLibrary.simpleMessage("Chế độ ban đêm"),
     "descriptions" : MessageLookupByLibrary.simpleMessage("Mô tả"),
     "download" : MessageLookupByLibrary.simpleMessage("Tải xuống"),
@@ -60,6 +65,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "instructorsNotFound" : MessageLookupByLibrary.simpleMessage("Xin lỗi, chùng tôi không thể tìm thấy giảng viên với từ khóa"),
     "invalidName" : MessageLookupByLibrary.simpleMessage("Tên không được bỏ trống"),
     "invalidPasswordOrUsername" : MessageLookupByLibrary.simpleMessage("Tên đăng nhập hoặc mật khẩu không hợp lệ"),
+    "language" : MessageLookupByLibrary.simpleMessage("Ngôn ngữ"),
     "leaveRate" : MessageLookupByLibrary.simpleMessage("Đánh giá"),
     "like" : MessageLookupByLibrary.simpleMessage("Thích"),
     "myCourses" : MessageLookupByLibrary.simpleMessage("Khóa học của tôi"),

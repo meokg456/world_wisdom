@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:world_wisdom/generated/l10n.dart';
+import 'package:world_wisdom/handler/handler.dart';
 import 'package:world_wisdom/model/authentication_model/authentication_model.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user.dart';
 import 'package:world_wisdom/model/authentication_model/user_model/user_model.dart';
@@ -64,6 +65,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (response.statusCode == 200) {
       UserModel userModel = UserModel.fromJson(jsonDecode(response.body));
       authenticationModel.setAuthenticationModel(userModel);
+    }
+    if (response.statusCode == 401) {
+      Handler.unauthorizedHandler(context);
     }
   }
 
